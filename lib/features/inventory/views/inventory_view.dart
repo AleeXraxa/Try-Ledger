@@ -1,9 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../../../constants/app_styles.dart';
 import '../../../utils/screen_utils.dart';
 import '../../../utils/helpers.dart';
+import '../../../widgets/saas_table.dart';
 import '../controllers/inventory_controller.dart';
 import '../models/product_model.dart';
 
@@ -15,53 +14,43 @@ class InventoryView extends StatelessWidget {
     return Padding(
       padding: EdgeInsets.all(ScreenUtils.setWidth(16)),
       child: Obx(
-        () => AnimationLimiter(
-          child: ListView.builder(
-            itemCount: controller.products.length,
-            itemBuilder: (context, index) {
-              Product product = controller.products[index];
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                child: SlideAnimation(
-                  horizontalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: CustomCard(
-                      child: ListTile(
-                        title: Text(product.name, style: AppStyles.bodyStyle),
-                        subtitle: Text(
-                          'Stock: ${product.stock} | Price: ${formatCurrency(product.price)}',
-                        ),
-                        trailing: IconButton(
-                          icon: Icon(Icons.edit),
-                          onPressed: () {
-                            // Edit product
-                          },
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+        () => SaaSTable(
+          title: 'Inventory',
+          subtitle: 'Manage your product stock',
+          columns: ['Name', 'Stock', 'Price', 'Value', 'Actions'],
+          columnTypes: ['text', 'numeric', 'currency', 'currency', 'actions'],
+          rows: controller.products
+              .map(
+                (product) => {
+                  'Name': product.name,
+                  'Stock': product.stock.toString(),
+                  'Price': formatCurrency(product.price),
+                  'Value': formatCurrency(product.stock * product.price),
+                },
+              )
+              .toList(),
+          onAddPressed: () {
+            // Add product
+          },
+          onFilterPressed: () {
+            // Filter
+          },
+          onExportPressed: () {
+            // Export
+          },
+          onRowTap: (index) {
+            // View details
+          },
+          onActionPressed: (index, action) {
+            if (action == 'edit') {
+              // Edit
+            } else if (action == 'delete') {
+              // Delete
+            }
+          },
+          isLoading: false,
         ),
       ),
-    );
-  }
-}
-
-class CustomCard extends StatelessWidget {
-  final Widget child;
-
-  const CustomCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      decoration: AppStyles.cardDecoration,
-      child: child,
     );
   }
 }

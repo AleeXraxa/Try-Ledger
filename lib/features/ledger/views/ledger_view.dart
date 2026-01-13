@@ -1,64 +1,75 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import '../../../constants/app_styles.dart';
 import '../../../utils/screen_utils.dart';
 import '../../../utils/helpers.dart';
+import '../../../widgets/saas_table.dart';
 import '../controllers/ledger_controller.dart';
 import '../models/ledger_entry_model.dart';
 
 class LedgerView extends StatelessWidget {
   final LedgerController controller = Get.put(LedgerController());
 
+  List<Map<String, String>> _buildLedgerRows(List<LedgerEntry> entries) {
+    double runningBalance = 0;
+    return entries.map((entry) {
+      runningBalance += entry.debit - entry.credit;
+      String balanceStr = formatCurrency(runningBalance.abs());
+      String label = runningBalance >= 0 ? 'Dr' : 'Cr';
+      return {
+        'Date': formatDate(entry.date),
+        'Description': entry.description,
+        'Debit': entry.debit > 0 ? formatCurrency(entry.debit) : '',
+        'Credit': entry.credit > 0 ? formatCurrency(entry.credit) : '',
+        'Balance': '$balanceStr $label',
+      };
+    }).toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Padding(
       padding: EdgeInsets.all(ScreenUtils.setWidth(16)),
       child: Obx(
-        () => AnimationLimiter(
-          child: ListView.builder(
-            itemCount: controller.ledgerEntries.length,
-            itemBuilder: (context, index) {
-              LedgerEntry entry = controller.ledgerEntries[index];
-              return AnimationConfiguration.staggeredList(
-                position: index,
-                duration: const Duration(milliseconds: 375),
-                child: SlideAnimation(
-                  horizontalOffset: 50.0,
-                  child: FadeInAnimation(
-                    child: CustomCard(
-                      child: ListTile(
-                        title: Text(
-                          entry.description,
-                          style: AppStyles.bodyStyle,
-                        ),
-                        subtitle: Text(
-                          'Debit: ${formatCurrency(entry.debit)} | Credit: ${formatCurrency(entry.credit)} | ${formatDate(entry.date)}',
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
+        () => SaaSTable(
+          title: 'Ledger',
+          subtitle: 'Track all financial transactions',
+          columns: ['Date', 'Description', 'Debit', 'Credit', 'Balance'],
+          columnTypes: ['text', 'text', 'currency', 'currency', 'balance'],
+          rows: controller.ledgerEntries
+              .map(
+                (entry) => {
+                  'Date': formatDate(entry.date),
+                  'Description': entry.description,
+                  'Debit': entry.debit > 0 ? formatCurrency(entry.debit) : '',
+                  'Credit': entry.credit > 0
+                      ? formatCurrency(entry.credit)
+                      : '',
+                  'Balance': '1000 Dr', // Need to calculate proper balance
+                },
+              )
+              .toList(),
+          onAddPressed: () {
+            // Add transaction
+          },
+          onFilterPressed: () {
+            // Filter
+          },
+          onExportPressed: () {
+            // Export
+          },
+          onRowTap: (index) {
+            // View details
+          },
+          onActionPressed: (index, action) {
+            if (action == 'edit') {
+              // Edit
+            } else if (action == 'delete') {
+              // Delete
+            }
+          },
+          isLoading: false,
         ),
       ),
-    );
-  }
-}
-
-class CustomCard extends StatelessWidget {
-  final Widget child;
-
-  const CustomCard({required this.child});
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      margin: EdgeInsets.symmetric(vertical: 4),
-      decoration: AppStyles.cardDecoration,
-      child: child,
     );
   }
 }

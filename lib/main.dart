@@ -21,6 +21,7 @@ class MyApp extends StatelessWidget {
       builder: (context, child) {
         return GetMaterialApp(
           title: 'TryLedger',
+          debugShowCheckedModeBanner: false,
           theme: ThemeData(
             primaryColor: AppColors.primary,
             fontFamily: AppFonts.poppinsRegular.fontFamily,

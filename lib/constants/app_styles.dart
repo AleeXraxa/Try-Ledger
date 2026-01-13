@@ -5,10 +5,22 @@ import 'app_fonts.dart';
 class AppStyles {
   static BoxDecoration cardDecoration = BoxDecoration(
     color: AppColors.background,
-    borderRadius: BorderRadius.circular(12),
+    borderRadius: BorderRadius.circular(16),
     boxShadow: [
-      BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, 4)),
+      BoxShadow(
+        color: Colors.black.withOpacity(0.04),
+        blurRadius: 12,
+        offset: Offset(0, 4),
+        spreadRadius: 0,
+      ),
+      BoxShadow(
+        color: Colors.black.withOpacity(0.02),
+        blurRadius: 24,
+        offset: Offset(0, 8),
+        spreadRadius: 0,
+      ),
     ],
+    border: Border.all(color: AppColors.neutral.withOpacity(0.08), width: 1),
   );
 
   static TextStyle headingStyle = AppFonts.poppinsBold.copyWith(

@@ -1,7 +1,7 @@
 // Helper functions for the app
 
 String formatCurrency(double amount) {
-  return '\$${amount.toStringAsFixed(2)}';
+  return 'Rs. ${amount.toStringAsFixed(2)}';
 }
 
 String formatDate(DateTime date) {
