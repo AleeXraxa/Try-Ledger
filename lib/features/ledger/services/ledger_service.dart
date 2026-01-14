@@ -1,23 +1,22 @@
 import '../models/ledger_entry_model.dart';
+import 'package:tryledger/utils/database_helper.dart';
 
 class LedgerService {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
   Future<List<LedgerEntry>> getLedgerEntries() async {
-    await Future.delayed(Duration(seconds: 1));
-    return [
-      LedgerEntry(
-        id: 1,
-        description: 'Sale',
-        debit: 100.0,
-        credit: 0.0,
-        date: DateTime.now(),
-      ),
-      LedgerEntry(
-        id: 2,
-        description: 'Purchase',
-        debit: 0.0,
-        credit: 50.0,
-        date: DateTime.now().subtract(Duration(days: 1)),
-      ),
-    ];
+    return await _dbHelper.getLedgerEntries();
+  }
+
+  Future<void> addLedgerEntry(LedgerEntry entry) async {
+    await _dbHelper.insertLedgerEntry(entry);
+  }
+
+  Future<void> updateLedgerEntry(LedgerEntry entry) async {
+    await _dbHelper.updateLedgerEntry(entry);
+  }
+
+  Future<void> deleteLedgerEntry(int id) async {
+    await _dbHelper.deleteLedgerEntry(id);
   }
 }

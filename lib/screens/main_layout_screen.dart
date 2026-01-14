@@ -14,9 +14,9 @@ class MainLayoutScreen extends StatelessWidget {
 
   final List<Widget> _screens = [
     DashboardView(),
+    LedgerView(),
     InventoryView(),
     TransactionsView(),
-    LedgerView(),
     ReportsView(),
     BackupView(),
   ];

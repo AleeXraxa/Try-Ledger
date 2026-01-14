@@ -30,7 +30,7 @@ class AppStyles {
 
   static TextStyle bodyStyle = AppFonts.poppinsRegular.copyWith(
     fontSize: 16,
-    color: AppColors.textSecondary,
+    color: AppColors.textPrimary,
   );
 
   static ButtonStyle primaryButtonStyle = ElevatedButton.styleFrom(

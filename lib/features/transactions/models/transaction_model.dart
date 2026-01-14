@@ -2,12 +2,14 @@ class Transaction {
   final int id;
   final String type; // 'sale' or 'purchase'
   final double amount;
+  final String description;
   final DateTime date;
 
   Transaction({
     required this.id,
     required this.type,
     required this.amount,
+    required this.description,
     required this.date,
   });
 
@@ -16,6 +18,7 @@ class Transaction {
       id: json['id'],
       type: json['type'],
       amount: json['amount'],
+      description: json['description'],
       date: DateTime.parse(json['date']),
     );
   }
@@ -25,6 +28,7 @@ class Transaction {
       'id': id,
       'type': type,
       'amount': amount,
+      'description': description,
       'date': date.toIso8601String(),
     };
   }

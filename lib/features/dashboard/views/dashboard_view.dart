@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
-import 'package:fl_chart/fl_chart.dart';
-import '../../../widgets/custom_card.dart';
 import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
 import '../../../utils/screen_utils.dart';
@@ -65,6 +63,102 @@ class DashboardView extends StatelessWidget {
                     ),
                   ),
                 ],
+              ),
+              SizedBox(height: 32),
+
+              // Quick Actions
+              Container(
+                padding: EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [
+                      AppColors.background,
+                      AppColors.background.withOpacity(0.9),
+                    ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withOpacity(0.06),
+                      blurRadius: 20,
+                      offset: Offset(0, 10),
+                      spreadRadius: 0,
+                    ),
+                    BoxShadow(
+                      color: Colors.black.withOpacity(0.03),
+                      blurRadius: 40,
+                      offset: Offset(0, 20),
+                      spreadRadius: 0,
+                    ),
+                  ],
+                  border: Border.all(
+                    color: AppColors.primary.withOpacity(0.08),
+                    width: 1,
+                  ),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Container(
+                          width: 4,
+                          height: 24,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary,
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                        SizedBox(width: 12),
+                        Text(
+                          'Quick Actions',
+                          style: AppStyles.headingStyle.copyWith(
+                            fontSize: 20,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                    SizedBox(height: 24),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildQuickActionButton(
+                            'Add Ledger Entry',
+                            Icons.add,
+                            () => layoutController.selectIndex(1),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickActionButton(
+                            'Add New Product',
+                            Icons.add_box,
+                            () => layoutController.selectIndex(2),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickActionButton(
+                            'Add Invoice',
+                            Icons.receipt,
+                            () => layoutController.selectIndex(3),
+                          ),
+                        ),
+                        SizedBox(width: 16),
+                        Expanded(
+                          child: _buildQuickActionButton(
+                            'Expenses',
+                            Icons.money_off,
+                            () => layoutController.selectIndex(3),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
               SizedBox(height: 32),
 
@@ -506,6 +600,81 @@ class DashboardView extends StatelessWidget {
                       ),
                     ),
                   ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  Widget _buildQuickActionButton(
+    String title,
+    IconData icon,
+    VoidCallback onPressed,
+  ) {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isHovered = false;
+        return InkWell(
+          onTap: onPressed,
+          onHover: (value) => setState(() => isHovered = value),
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            transform: isHovered
+                ? (Matrix4.translationValues(0, -2, 0)..scale(1.05))
+                : Matrix4.translationValues(0, 0, 0),
+            padding: EdgeInsets.symmetric(vertical: 16, horizontal: 12),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: isHovered
+                    ? [
+                        AppColors.primary.withOpacity(0.9),
+                        AppColors.primary.withOpacity(0.8),
+                      ]
+                    : [AppColors.primary, AppColors.primary.withOpacity(0.9)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(12),
+              boxShadow: isHovered
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.3),
+                        blurRadius: 12,
+                        offset: Offset(0, 6),
+                      ),
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: Offset(0, 0),
+                        spreadRadius: 2,
+                      ),
+                    ]
+                  : [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Icon(icon, color: Colors.white, size: 24),
+                SizedBox(height: 8),
+                Text(
+                  title,
+                  style: AppStyles.bodyStyle.copyWith(
+                    color: Colors.white,
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
               ],
             ),
           ),

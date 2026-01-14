@@ -1,5 +1,4 @@
 import 'package:get/get.dart';
-import '../models/dashboard_model.dart';
 import '../services/dashboard_service.dart';
 import '../../ledger/models/ledger_entry_model.dart';
 import '../../inventory/models/product_model.dart';

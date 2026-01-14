@@ -1,20 +1,22 @@
 import '../models/transaction_model.dart';
+import 'package:tryledger/utils/database_helper.dart';
 
 class TransactionsService {
+  final DatabaseHelper _dbHelper = DatabaseHelper();
+
   Future<List<Transaction>> getTransactions() async {
-    await Future.delayed(Duration(seconds: 1));
-    return [
-      Transaction(id: 1, type: 'sale', amount: 100.0, date: DateTime.now()),
-      Transaction(
-        id: 2,
-        type: 'purchase',
-        amount: 50.0,
-        date: DateTime.now().subtract(Duration(days: 1)),
-      ),
-    ];
+    return await _dbHelper.getTransactions();
   }
 
   Future<void> addTransaction(Transaction transaction) async {
-    await Future.delayed(Duration(milliseconds: 500));
+    await _dbHelper.insertTransaction(transaction);
+  }
+
+  Future<void> updateTransaction(Transaction transaction) async {
+    await _dbHelper.updateTransaction(transaction);
+  }
+
+  Future<void> deleteTransaction(int id) async {
+    await _dbHelper.deleteTransaction(id);
   }
 }

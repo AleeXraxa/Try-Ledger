@@ -16,4 +16,22 @@ class LedgerController extends GetxController {
   void loadLedger() async {
     ledgerEntries.value = await _service.getLedgerEntries();
   }
+
+  Future<void> addLedgerEntry(LedgerEntry entry) async {
+    await _service.addLedgerEntry(entry);
+    ledgerEntries.add(entry);
+  }
+
+  Future<void> updateLedgerEntry(LedgerEntry entry) async {
+    await _service.updateLedgerEntry(entry);
+    int index = ledgerEntries.indexWhere((e) => e.id == entry.id);
+    if (index != -1) {
+      ledgerEntries[index] = entry;
+    }
+  }
+
+  Future<void> deleteLedgerEntry(int id) async {
+    await _service.deleteLedgerEntry(id);
+    ledgerEntries.removeWhere((e) => e.id == id);
+  }
 }

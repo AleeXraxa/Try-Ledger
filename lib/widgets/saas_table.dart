@@ -51,48 +51,22 @@ class _SaaSTableState extends State<SaaSTable> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Header
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  widget.title,
-                  style: AppStyles.headingStyle.copyWith(fontSize: 24),
-                ),
-                if (widget.subtitle != null)
-                  Text(widget.subtitle!, style: AppStyles.bodyStyle),
-              ],
+            Text(
+              widget.title,
+              style: AppStyles.headingStyle.copyWith(fontSize: 24),
             ),
-            Row(
-              children: [
-                if (widget.onFilterPressed != null)
-                  IconButton(
-                    icon: Icon(Icons.filter_list),
-                    onPressed: widget.onFilterPressed,
-                  ),
-                if (widget.onExportPressed != null)
-                  IconButton(
-                    icon: Icon(Icons.download),
-                    onPressed: widget.onExportPressed,
-                  ),
-                if (widget.onAddPressed != null)
-                  ElevatedButton.icon(
-                    icon: Icon(Icons.add),
-                    label: Text('Add'),
-                    onPressed: widget.onAddPressed,
-                    style: AppStyles.primaryButtonStyle,
-                  ),
-              ],
-            ),
+            if (widget.subtitle != null)
+              Text(widget.subtitle!, style: AppStyles.bodyStyle),
           ],
         ),
-        SizedBox(height: 16),
 
         // Table
         Expanded(
           child: CustomCard(
+            padding: EdgeInsets.zero,
             child: widget.isLoading
                 ? _buildSkeleton()
                 : _buildScrollableTable(),
@@ -149,83 +123,47 @@ class _SaaSTableState extends State<SaaSTable> {
   }
 
   Widget _buildTableRow(int index, Map<String, String> row) {
-    bool isHovered = hoveredIndex == index;
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      onEnter: (_) => setState(() => hoveredIndex = index),
-      onExit: (_) => setState(() => hoveredIndex = null),
-      child: InkWell(
-        onTap: () => widget.onRowTap?.call(index),
-        child: AnimatedContainer(
-          duration: Duration(milliseconds: 200),
-          padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
-          decoration: BoxDecoration(
-            color: isHovered
-                ? AppColors.primary.withOpacity(0.05)
-                : Colors.transparent,
-            border: Border(
-              bottom: BorderSide(color: AppColors.neutral.withOpacity(0.1)),
-            ),
+    return InkWell(
+      onTap: () => widget.onRowTap?.call(index),
+      child: Container(
+        padding: EdgeInsets.symmetric(vertical: 16, horizontal: 16),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(color: AppColors.neutral.withOpacity(0.1)),
           ),
-          child: Row(
-            children: widget.columns.asMap().entries.map((entry) {
-              int colIndex = entry.key;
-              String colName = entry.value;
-              String value = row[colName] ?? '';
-              String type = widget.columnTypes[colIndex];
-              bool isNumeric =
-                  type == 'numeric' || type == 'currency' || type == 'balance';
-              bool isActions = type == 'actions';
-              return Expanded(
-                child: Stack(
-                  alignment: Alignment.centerRight,
-                  children: [
-                    if (!isActions)
-                      Align(
-                        alignment: isNumeric
-                            ? Alignment.centerRight
-                            : Alignment.centerLeft,
-                        child: _buildCellContent(value, type),
-                      ),
-                    if (isActions && isHovered)
-                      Positioned(
-                        right: 0,
-                        child: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            IconButton(
-                              icon: Icon(Icons.edit, size: 16),
-                              onPressed: () =>
-                                  widget.onActionPressed?.call(index, 'edit'),
-                            ),
-                            IconButton(
-                              icon: Icon(
-                                Icons.delete,
-                                size: 16,
-                                color: Colors.red,
-                              ),
-                              onPressed: () =>
-                                  widget.onActionPressed?.call(index, 'delete'),
-                            ),
-                          ],
-                        ),
-                      ),
-                  ],
-                ),
-              );
-            }).toList(),
-          ),
+        ),
+        child: Row(
+          children: widget.columns.asMap().entries.map((entry) {
+            int colIndex = entry.key;
+            String colName = entry.value;
+            String value = row[colName] ?? '';
+            String type = widget.columnTypes[colIndex];
+            bool isNumeric =
+                type == 'numeric' || type == 'currency' || type == 'balance';
+            return Expanded(
+              child: Align(
+                alignment: isNumeric
+                    ? Alignment.centerRight
+                    : Alignment.centerLeft,
+                child: _buildCellContent(value, type, colName),
+              ),
+            );
+          }).toList(),
         ),
       ),
     );
   }
 
-  Widget _buildCellContent(String value, String type) {
+  Widget _buildCellContent(String value, String type, String colName) {
     switch (type) {
       case 'currency':
         return Text(
           value,
-          style: AppStyles.bodyStyle,
+          style: AppStyles.bodyStyle.copyWith(
+            fontWeight: colName == 'Balance'
+                ? FontWeight.bold
+                : FontWeight.normal,
+          ),
           textAlign: TextAlign.right,
         );
       case 'balance':
