@@ -133,22 +133,35 @@ class _SaaSTableState extends State<SaaSTable> {
           ),
         ),
         child: Row(
-          children: widget.columns.asMap().entries.map((entry) {
-            int colIndex = entry.key;
-            String colName = entry.value;
-            String value = row[colName] ?? '';
-            String type = widget.columnTypes[colIndex];
-            bool isNumeric =
-                type == 'numeric' || type == 'currency' || type == 'balance';
-            return Expanded(
-              child: Align(
-                alignment: isNumeric
-                    ? Alignment.centerRight
-                    : Alignment.centerLeft,
-                child: _buildCellContent(value, type, colName),
-              ),
-            );
-          }).toList(),
+          children: widget.columns
+              .asMap()
+              .entries
+              .map((entry) {
+                int colIndex = entry.key;
+                String colName = entry.value;
+                String value = row[colName] ?? '';
+                String type = widget.columnTypes[colIndex];
+                bool isNumeric =
+                    type == 'numeric' ||
+                    type == 'currency' ||
+                    type == 'balance';
+                return [
+                  Expanded(
+                    child: Align(
+                      alignment: Alignment.centerLeft,
+                      child: _buildCellContent(value, type, colName),
+                    ),
+                  ),
+                  if (colIndex < widget.columns.length - 1)
+                    Container(
+                      width: 1,
+                      height: 20,
+                      color: AppColors.neutral.withOpacity(0.2),
+                    ),
+                ];
+              })
+              .expand((element) => element)
+              .toList(),
         ),
       ),
     );
@@ -164,7 +177,7 @@ class _SaaSTableState extends State<SaaSTable> {
                 ? FontWeight.bold
                 : FontWeight.normal,
           ),
-          textAlign: TextAlign.right,
+          textAlign: TextAlign.left,
         );
       case 'balance':
         // Assume value is like "1000 Dr" or "500 Cr"
@@ -179,7 +192,7 @@ class _SaaSTableState extends State<SaaSTable> {
               style: AppStyles.bodyStyle.copyWith(
                 color: label == 'Dr' ? Colors.red : Colors.green,
               ),
-              textAlign: TextAlign.right,
+              textAlign: TextAlign.left,
             ),
             SizedBox(width: 4),
             Text(
@@ -195,7 +208,7 @@ class _SaaSTableState extends State<SaaSTable> {
         return Text(
           value,
           style: AppStyles.bodyStyle,
-          textAlign: type == 'numeric' ? TextAlign.right : TextAlign.left,
+          textAlign: TextAlign.left,
         );
     }
   }
@@ -289,7 +302,7 @@ class _TableHeaderDelegate extends SliverPersistentHeaderDelegate {
     return Container(
       height: 50,
       decoration: BoxDecoration(
-        color: AppColors.primary.withOpacity(0.1),
+        color: AppColors.background,
         borderRadius: BorderRadius.only(
           topLeft: Radius.circular(12),
           topRight: Radius.circular(12),

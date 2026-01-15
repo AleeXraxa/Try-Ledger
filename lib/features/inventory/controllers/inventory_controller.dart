@@ -17,7 +17,7 @@ class InventoryController extends GetxController {
     products.value = await _service.getProducts();
   }
 
-  void addProduct(Product product) async {
+  Future<void> addProduct(Product product) async {
     await _service.addProduct(product);
     loadProducts();
   }
@@ -27,7 +27,7 @@ class InventoryController extends GetxController {
     loadProducts();
   }
 
-  void deleteProduct(int id) async {
+  Future<void> deleteProduct(int id) async {
     await _service.deleteProduct(id);
     loadProducts();
   }

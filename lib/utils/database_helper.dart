@@ -1,10 +1,10 @@
-import 'package:sqflite/sqflite.dart' hide Transaction;
+import 'package:sqflite/sqflite.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:path/path.dart';
 import 'dart:io';
 import '../features/ledger/models/ledger_entry_model.dart';
 import '../features/inventory/models/product_model.dart';
-import '../features/transactions/models/transaction_model.dart' as tx;
+import '../features/inventory/models/invoice_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -23,7 +23,12 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'TryLedger.db');
-    return await openDatabase(path, version: 1, onCreate: _onCreate);
+    return await openDatabase(
+      path,
+      version: 2,
+      onCreate: _onCreate,
+      onUpgrade: _onUpgrade,
+    );
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -49,16 +54,31 @@ class DatabaseHelper {
       )
     ''');
 
-    // Create transactions table
+    // Create invoices table
     await db.execute('''
-      CREATE TABLE transactions (
+      CREATE TABLE invoices (
         id INTEGER PRIMARY KEY,
-        type TEXT NOT NULL,
-        amount REAL NOT NULL,
-        description TEXT NOT NULL,
-        date TEXT NOT NULL
+        reference TEXT NOT NULL,
+        date TEXT NOT NULL,
+        items TEXT NOT NULL,
+        total REAL NOT NULL
       )
     ''');
+  }
+
+  Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
+    if (oldVersion < 2) {
+      // Create invoices table
+      await db.execute('''
+        CREATE TABLE invoices (
+          id INTEGER PRIMARY KEY,
+          reference TEXT NOT NULL,
+          date TEXT NOT NULL,
+          items TEXT NOT NULL,
+          total REAL NOT NULL
+        )
+      ''');
+    }
   }
 
   // Ledger Entry methods
@@ -94,6 +114,7 @@ class DatabaseHelper {
   Future<List<Product>> getProducts() async {
     Database db = await database;
     List<Map<String, dynamic>> maps = await db.query('products');
+    print('Queried products: $maps');
     return List.generate(maps.length, (i) {
       return Product.fromJson(maps[i]);
     });
@@ -101,7 +122,15 @@ class DatabaseHelper {
 
   Future<void> insertProduct(Product product) async {
     Database db = await database;
-    await db.insert('products', product.toJson());
+    Map<String, dynamic> data = product.toJson();
+    data.remove('id');
+    print('Inserting product data: $data');
+    try {
+      await db.insert('products', data);
+      print('Product inserted successfully');
+    } catch (e) {
+      print('Error inserting product: $e');
+    }
   }
 
   Future<void> updateProduct(Product product) async {
@@ -119,32 +148,34 @@ class DatabaseHelper {
     await db.delete('products', where: 'id = ?', whereArgs: [id]);
   }
 
-  // Transaction methods
-  Future<List<tx.Transaction>> getTransactions() async {
+  // Invoice methods
+  Future<List<Invoice>> getInvoices() async {
     Database db = await database;
-    List<Map<String, dynamic>> maps = await db.query('transactions');
+    List<Map<String, dynamic>> maps = await db.query('invoices');
     return List.generate(maps.length, (i) {
-      return tx.Transaction.fromJson(maps[i]);
+      return Invoice.fromJson(maps[i]);
     });
   }
 
-  Future<void> insertTransaction(tx.Transaction transaction) async {
+  Future<void> insertInvoice(Invoice invoice) async {
     Database db = await database;
-    await db.insert('transactions', transaction.toJson());
+    Map<String, dynamic> data = invoice.toJson();
+    data.remove('id');
+    await db.insert('invoices', data);
   }
 
-  Future<void> updateTransaction(tx.Transaction transaction) async {
+  Future<void> updateInvoice(Invoice invoice) async {
     Database db = await database;
     await db.update(
-      'transactions',
-      transaction.toJson(),
+      'invoices',
+      invoice.toJson(),
       where: 'id = ?',
-      whereArgs: [transaction.id],
+      whereArgs: [invoice.id],
     );
   }
 
-  Future<void> deleteTransaction(int id) async {
+  Future<void> deleteInvoice(int id) async {
     Database db = await database;
-    await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
+    await db.delete('invoices', where: 'id = ?', whereArgs: [id]);
   }
 }

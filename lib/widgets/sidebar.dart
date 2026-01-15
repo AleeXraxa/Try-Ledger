@@ -12,7 +12,6 @@ class Sidebar extends StatelessWidget {
     'Dashboard',
     'Ledger',
     'Inventory',
-    'Transactions',
     'Reports',
     'Backup',
   ];
@@ -21,7 +20,6 @@ class Sidebar extends StatelessWidget {
     Icons.dashboard,
     Icons.book,
     Icons.inventory,
-    Icons.swap_horiz,
     Icons.bar_chart,
     Icons.backup,
   ];

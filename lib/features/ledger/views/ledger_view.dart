@@ -45,213 +45,215 @@ class LedgerView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SingleChildScrollView(
+    return Container(
       padding: EdgeInsets.all(ScreenUtils.setWidth(16)),
-      child: Container(
-        padding: EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.background,
-              AppColors.background.withOpacity(0.9),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
-              blurRadius: 20,
-              offset: Offset(0, 10),
-              spreadRadius: 0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: EdgeInsets.all(32),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.background,
+                  AppColors.background.withOpacity(0.9),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withOpacity(0.06),
+                  blurRadius: 20,
+                  offset: Offset(0, 10),
+                  spreadRadius: 0,
+                ),
+                BoxShadow(
+                  color: Colors.black.withOpacity(0.03),
+                  blurRadius: 40,
+                  offset: Offset(0, 20),
+                  spreadRadius: 0,
+                ),
+              ],
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.08),
+                width: 1,
+              ),
             ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 40,
-              offset: Offset(0, 20),
-              spreadRadius: 0,
-            ),
-          ],
-          border: Border.all(
-            color: AppColors.primary.withOpacity(0.08),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Container(
-                  width: 4,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    color: AppColors.primary,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
+                Row(
+                  children: [
+                    Container(
+                      width: 4,
+                      height: 24,
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    SizedBox(width: 12),
+                    Text(
+                      'Ledger',
+                      style: AppStyles.headingStyle.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    Spacer(),
+                    _buildPremiumButton(
+                      'Add Entry',
+                      Icons.add,
+                      AppColors.primary,
+                      () {
+                        _showAddEntryDialog(context);
+                      },
+                    ),
+                    SizedBox(width: 12),
+                    _buildPremiumButton(
+                      'Generate Report',
+                      Icons.bar_chart,
+                      AppColors.accent,
+                      () {
+                        // Generate report logic
+                      },
+                    ),
+                  ],
                 ),
-                SizedBox(width: 12),
+                SizedBox(height: 8),
                 Text(
-                  'Ledger',
-                  style: AppStyles.headingStyle.copyWith(
-                    fontSize: 20,
-                    fontWeight: FontWeight.w600,
+                  'Track all financial transactions',
+                  style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
+                ),
+                SizedBox(height: 24),
+                // Filter Section
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.background.withOpacity(0.5),
+                        AppColors.background.withOpacity(0.3),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.1),
+                      width: 1,
+                    ),
                   ),
-                ),
-                Spacer(),
-                _buildPremiumButton(
-                  'Add Entry',
-                  Icons.add,
-                  AppColors.primary,
-                  () {
-                    _showAddEntryDialog(context);
-                  },
-                ),
-                SizedBox(width: 12),
-                _buildPremiumButton(
-                  'Generate Report',
-                  Icons.bar_chart,
-                  AppColors.accent,
-                  () {
-                    // Generate report logic
-                  },
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 3,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: AppColors.accent,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Filter Transactions',
+                            style: AppStyles.bodyStyle.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDatePicker(
+                              'From Date',
+                              Icons.calendar_today,
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: _buildDatePicker(
+                              'To Date',
+                              Icons.calendar_today,
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          _buildPremiumButton(
+                            'Apply Filter',
+                            Icons.filter_list,
+                            AppColors.primary,
+                            () {
+                              // Apply filter logic
+                            },
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
                 ),
               ],
             ),
-            SizedBox(height: 8),
-            Text(
-              'Track all financial transactions',
-              style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
-            ),
-            SizedBox(height: 24),
-            // Filter Section
-            Container(
-              padding: EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  colors: [
-                    AppColors.background.withOpacity(0.5),
-                    AppColors.background.withOpacity(0.3),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: AppColors.primary.withOpacity(0.1),
-                  width: 1,
-                ),
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        width: 3,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: AppColors.accent,
-                          borderRadius: BorderRadius.circular(2),
-                        ),
-                      ),
-                      SizedBox(width: 10),
-                      Text(
-                        'Filter Transactions',
-                        style: AppStyles.bodyStyle.copyWith(
-                          fontWeight: FontWeight.w600,
-                          color: AppColors.textPrimary,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 16),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: _buildDatePicker(
-                          'From Date',
-                          Icons.calendar_today,
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: _buildDatePicker(
-                          'To Date',
-                          Icons.calendar_today,
-                        ),
-                      ),
-                      SizedBox(width: 16),
-                      _buildPremiumButton(
-                        'Apply Filter',
-                        Icons.filter_list,
-                        AppColors.primary,
-                        () {
-                          // Apply filter logic
-                        },
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 24),
-            Obx(
+          ),
+          SizedBox(height: 24),
+          Expanded(
+            child: Obx(
               () => controller.ledgerEntries.isEmpty
                   ? _buildEmptyState(context)
-                  : SizedBox(
-                      height:
-                          MediaQuery.of(context).size.height -
-                          200, // Adjust height
-                      child: SaaSTable(
-                        title: '', // Remove title since we have it above
-                        subtitle: null,
-                        columns: [
-                          'Date',
-                          'Description',
-                          'Debit',
-                          'Credit',
-                          'Balance',
-                        ],
-                        columnTypes: [
-                          'text',
-                          'text',
-                          'currency',
-                          'currency',
-                          'currency',
-                        ],
-                        rows: _buildLedgerRows(controller.ledgerEntries),
-                        onAddPressed: () {
-                          // Add transaction
-                        },
-                        onFilterPressed: () {
-                          // Filter
-                        },
-                        onExportPressed: () {
-                          // Export
-                        },
-                        onRowTap: (index) {
-                          if (index == 0)
-                            return; // Opening balance row, no details
-                          _showEntryDetailsDialog(
-                            context,
-                            controller.ledgerEntries[index - 1],
-                          );
-                        },
-                        onActionPressed: (index, action) {
-                          if (action == 'edit') {
-                            // Edit
-                          } else if (action == 'delete') {
-                            // Delete
-                          }
-                        },
-                        isLoading: false,
-                      ),
+                  : SaaSTable(
+                      title: '', // Remove title since we have it above
+                      subtitle: null,
+                      columns: [
+                        'Date',
+                        'Description',
+                        'Debit',
+                        'Credit',
+                        'Balance',
+                      ],
+                      columnTypes: [
+                        'text',
+                        'text',
+                        'currency',
+                        'currency',
+                        'currency',
+                      ],
+                      rows: _buildLedgerRows(controller.ledgerEntries),
+                      onAddPressed: () {
+                        // Add transaction
+                      },
+                      onFilterPressed: () {
+                        // Filter
+                      },
+                      onExportPressed: () {
+                        // Export
+                      },
+                      onRowTap: (index) {
+                        if (index == 0)
+                          return; // Opening balance row, no details
+                        _showEntryDetailsDialog(
+                          context,
+                          controller.ledgerEntries[index - 1],
+                        );
+                      },
+                      onActionPressed: (index, action) {
+                        if (action == 'edit') {
+                          // Edit
+                        } else if (action == 'delete') {
+                          // Delete
+                        }
+                      },
+                      isLoading: false,
                     ),
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -718,6 +720,25 @@ class LedgerView extends StatelessWidget {
               SizedBox(height: 24),
               Row(
                 children: [
+                  Expanded(
+                    child: TextButton(
+                      onPressed: () => Navigator.of(context).pop(),
+                      style: TextButton.styleFrom(
+                        padding: EdgeInsets.symmetric(vertical: 12),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                      ),
+                      child: Text(
+                        'Cancel',
+                        style: AppStyles.bodyStyle.copyWith(
+                          color: AppColors.neutral,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(width: 16),
                   Expanded(
                     child: _buildPremiumButton(
                       'Edit',
