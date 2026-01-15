@@ -176,6 +176,7 @@ class LedgerView extends StatelessWidget {
                             child: _buildDatePicker(
                               'From Date',
                               Icons.calendar_today,
+                              true, // isFromDate
                             ),
                           ),
                           SizedBox(width: 16),
@@ -183,6 +184,7 @@ class LedgerView extends StatelessWidget {
                             child: _buildDatePicker(
                               'To Date',
                               Icons.calendar_today,
+                              false, // isFromDate
                             ),
                           ),
                           SizedBox(width: 16),
@@ -191,8 +193,21 @@ class LedgerView extends StatelessWidget {
                             Icons.filter_list,
                             AppColors.primary,
                             () {
-                              // Apply filter logic
+                              controller.applyDateFilter();
                             },
+                          ),
+                          SizedBox(width: 12),
+                          Obx(
+                            () => controller.isFiltered.value
+                                ? _buildPremiumButton(
+                                    'Clear Filter',
+                                    Icons.clear,
+                                    Colors.grey,
+                                    () {
+                                      controller.clearFilter();
+                                    },
+                                  )
+                                : SizedBox.shrink(),
                           ),
                         ],
                       ),
@@ -205,7 +220,7 @@ class LedgerView extends StatelessWidget {
           SizedBox(height: 24),
           Expanded(
             child: Obx(
-              () => controller.ledgerEntries.isEmpty
+              () => controller.filteredEntries.isEmpty
                   ? _buildEmptyState(context)
                   : SaaSTable(
                       title: '', // Remove title since we have it above
@@ -224,7 +239,7 @@ class LedgerView extends StatelessWidget {
                         'currency',
                         'currency',
                       ],
-                      rows: _buildLedgerRows(controller.ledgerEntries),
+                      rows: _buildLedgerRows(controller.filteredEntries),
                       onAddPressed: () {
                         // Add transaction
                       },
@@ -239,7 +254,7 @@ class LedgerView extends StatelessWidget {
                           return; // Opening balance row, no details
                         _showEntryDetailsDialog(
                           context,
-                          controller.ledgerEntries[index - 1],
+                          controller.filteredEntries[index - 1],
                         );
                       },
                       onActionPressed: (index, action) {
@@ -327,102 +342,118 @@ class LedgerView extends StatelessWidget {
     );
   }
 
-  Widget _buildDatePicker(String label, IconData icon) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        bool isHovered = false;
-        String selectedDate = 'Select Date';
-        return InkWell(
-          onTap: () async {
-            DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: DateTime.now(),
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.light(
-                      primary: AppColors.primary,
-                      onPrimary: Colors.white,
-                      surface: AppColors.background,
-                      onSurface: AppColors.textPrimary,
+  Widget _buildDatePicker(String label, IconData icon, bool isFromDate) {
+    return Obx(() {
+      DateTime? selectedDate = isFromDate
+          ? controller.fromDate.value
+          : controller.toDate.value;
+      String displayText = selectedDate != null
+          ? formatDate(selectedDate)
+          : 'Select Date';
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          bool isHovered = false;
+          return InkWell(
+            onTap: () async {
+              DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: selectedDate ?? DateTime.now(),
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2030),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: ColorScheme.light(
+                        primary: AppColors.primary,
+                        onPrimary: Colors.white,
+                        surface: AppColors.background,
+                        onSurface: AppColors.textPrimary,
+                      ),
+                      dialogBackgroundColor: AppColors.background,
                     ),
-                    dialogBackgroundColor: AppColors.background,
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (picked != null) {
-              setState(() => selectedDate = formatDate(picked));
-            }
-          },
-          onHover: (value) => setState(() => isHovered = value),
-          borderRadius: BorderRadius.circular(12),
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              color: isHovered
-                  ? AppColors.primary.withOpacity(0.05)
-                  : AppColors.background.withOpacity(0.8),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
+                    child: child!,
+                  );
+                },
+              );
+              if (picked != null) {
+                if (isFromDate) {
+                  controller.fromDate.value = picked;
+                } else {
+                  controller.toDate.value = picked;
+                }
+              }
+            },
+            onHover: (value) => setState(() => isHovered = value),
+            borderRadius: BorderRadius.circular(12),
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
                 color: isHovered
-                    ? AppColors.primary.withOpacity(0.3)
-                    : AppColors.neutral.withOpacity(0.2),
-                width: 1,
+                    ? AppColors.primary.withOpacity(0.05)
+                    : AppColors.background.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isHovered
+                      ? AppColors.primary.withOpacity(0.3)
+                      : AppColors.neutral.withOpacity(0.2),
+                  width: 1,
+                ),
+                boxShadow: isHovered
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ]
+                    : null,
               ),
-              boxShadow: isHovered
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 2),
-                      ),
-                    ]
-                  : null,
-            ),
-            child: Row(
-              children: [
-                Icon(
-                  icon,
-                  color: isHovered ? AppColors.primary : AppColors.neutral,
-                  size: 20,
-                ),
-                SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        label,
-                        style: AppStyles.bodyStyle.copyWith(
-                          fontSize: 12,
-                          color: AppColors.neutral,
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                      SizedBox(height: 2),
-                      Text(
-                        selectedDate,
-                        style: AppStyles.bodyStyle.copyWith(
-                          color: AppColors.textPrimary,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ],
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: isHovered ? AppColors.primary : AppColors.neutral,
+                    size: 20,
                   ),
-                ),
-                Icon(Icons.arrow_drop_down, color: AppColors.neutral, size: 20),
-              ],
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: AppStyles.bodyStyle.copyWith(
+                            fontSize: 12,
+                            color: AppColors.neutral,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          displayText,
+                          style: AppStyles.bodyStyle.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: AppColors.neutral,
+                    size: 20,
+                  ),
+                ],
+              ),
             ),
-          ),
-        );
-      },
-    );
+          );
+        },
+      );
+    });
   }
 
   void _showAddEntryDialog(BuildContext context, [LedgerEntry? entry]) {
