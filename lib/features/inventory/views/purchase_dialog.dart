@@ -199,6 +199,8 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
     );
     // Save to database
     await DatabaseHelper().insertInvoice(invoice);
+    // Reload invoices in controller
+    controller.loadInvoices();
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Purchase invoice saved successfully!')),
@@ -435,11 +437,24 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
               ),
             ),
             SizedBox(height: 24),
-            _buildPremiumButton(
-              'Submit Purchase',
-              Icons.check,
-              AppColors.primary,
-              _submitPurchase,
+            Row(
+              children: [
+                Text(
+                  'Total: ${formatCurrency(selectedItems.fold(0.0, (sum, item) => sum + (item['value'] as double)))}',
+                  style: AppStyles.headingStyle.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.primary,
+                  ),
+                ),
+                Spacer(),
+                _buildPremiumButton(
+                  'Submit Purchase',
+                  Icons.check,
+                  AppColors.primary,
+                  _submitPurchase,
+                ),
+              ],
             ),
           ],
         ),

@@ -899,130 +899,132 @@ class LedgerView extends StatelessWidget {
     String? descriptionError;
     String? amountError;
 
-    return Center(
-      child: Container(
-        padding: EdgeInsets.all(32),
-        constraints: BoxConstraints(maxWidth: 600),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.background,
-              AppColors.background.withOpacity(0.9),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
-              blurRadius: 20,
-              offset: Offset(0, 10),
-            ),
-          ],
-          border: Border.all(
-            color: AppColors.primary.withOpacity(0.08),
-            width: 1,
-          ),
-        ),
-        child: StatefulBuilder(
-          builder: (context, setState) {
-            return Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(
-                  Icons.account_balance_wallet,
-                  size: 64,
-                  color: AppColors.primary.withOpacity(0.6),
-                ),
-                SizedBox(height: 16),
-                Text(
-                  'No Ledger Entries Yet',
-                  style: AppStyles.headingStyle.copyWith(
-                    fontSize: 24,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-                SizedBox(height: 8),
-                Text(
-                  'Start tracking your financial transactions by adding your first entry below.',
-                  style: AppStyles.bodyStyle.copyWith(
-                    color: AppColors.neutral,
-                    fontSize: 16,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 32),
-                _buildFormField(
-                  'Description',
-                  Icons.description,
-                  descriptionController,
-                  'Enter transaction description',
-                  errorText: descriptionError,
-                ),
-                SizedBox(height: 16),
-                StatefulBuilder(
-                  builder: (context, setState) => _buildTypeDropdown(
-                    context,
-                    selectedType,
-                    (type) => setState(() => selectedType = type),
-                  ),
-                ),
-                SizedBox(height: 16),
-                _buildFormField(
-                  'Amount',
-                  Icons.attach_money,
-                  amountController,
-                  '0.00',
-                  keyboardType: TextInputType.number,
-                  errorText: amountError,
-                ),
-                SizedBox(height: 16),
-                StatefulBuilder(
-                  builder: (context, setState) => _buildDateField(
-                    context,
-                    selectedDate,
-                    (date) => setState(() => selectedDate = date),
-                  ),
-                ),
-                SizedBox(height: 24),
-                _buildPremiumButton(
-                  'Add First Entry',
-                  Icons.add,
-                  AppColors.primary,
-                  () async {
-                    // Validation
-                    String? descError;
-                    String? amtError;
-                    if (descriptionController.text.trim().isEmpty) {
-                      descError = 'Description is required';
-                    }
-                    double? amount = double.tryParse(amountController.text);
-                    if (amount == null || amount <= 0) {
-                      amtError = 'Please enter a valid amount greater than 0';
-                    }
-                    if (descError != null || amtError != null) {
-                      setState(() {
-                        descriptionError = descError;
-                        amountError = amtError;
-                      });
-                      return;
-                    }
-                    double debit = selectedType == 'debit' ? amount! : 0;
-                    double credit = selectedType == 'credit' ? amount! : 0;
-                    final entry = LedgerEntry(
-                      id: DateTime.now().millisecondsSinceEpoch,
-                      description: descriptionController.text,
-                      debit: debit,
-                      credit: credit,
-                      date: selectedDate,
-                    );
-                    await controller.addLedgerEntry(entry);
-                  },
-                ),
+    return SingleChildScrollView(
+      child: Center(
+        child: Container(
+          padding: EdgeInsets.all(32),
+          constraints: BoxConstraints(maxWidth: 600),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.background,
+                AppColors.background.withOpacity(0.9),
               ],
-            );
-          },
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.06),
+                blurRadius: 20,
+                offset: Offset(0, 10),
+              ),
+            ],
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.08),
+              width: 1,
+            ),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.account_balance_wallet,
+                    size: 64,
+                    color: AppColors.primary.withOpacity(0.6),
+                  ),
+                  SizedBox(height: 16),
+                  Text(
+                    'No Ledger Entries Yet',
+                    style: AppStyles.headingStyle.copyWith(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  SizedBox(height: 8),
+                  Text(
+                    'Start tracking your financial transactions by adding your first entry below.',
+                    style: AppStyles.bodyStyle.copyWith(
+                      color: AppColors.neutral,
+                      fontSize: 16,
+                    ),
+                    textAlign: TextAlign.center,
+                  ),
+                  SizedBox(height: 32),
+                  _buildFormField(
+                    'Description',
+                    Icons.description,
+                    descriptionController,
+                    'Enter transaction description',
+                    errorText: descriptionError,
+                  ),
+                  SizedBox(height: 16),
+                  StatefulBuilder(
+                    builder: (context, setState) => _buildTypeDropdown(
+                      context,
+                      selectedType,
+                      (type) => setState(() => selectedType = type),
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildFormField(
+                    'Amount',
+                    Icons.attach_money,
+                    amountController,
+                    '0.00',
+                    keyboardType: TextInputType.number,
+                    errorText: amountError,
+                  ),
+                  SizedBox(height: 16),
+                  StatefulBuilder(
+                    builder: (context, setState) => _buildDateField(
+                      context,
+                      selectedDate,
+                      (date) => setState(() => selectedDate = date),
+                    ),
+                  ),
+                  SizedBox(height: 24),
+                  _buildPremiumButton(
+                    'Add First Entry',
+                    Icons.add,
+                    AppColors.primary,
+                    () async {
+                      // Validation
+                      String? descError;
+                      String? amtError;
+                      if (descriptionController.text.trim().isEmpty) {
+                        descError = 'Description is required';
+                      }
+                      double? amount = double.tryParse(amountController.text);
+                      if (amount == null || amount <= 0) {
+                        amtError = 'Please enter a valid amount greater than 0';
+                      }
+                      if (descError != null || amtError != null) {
+                        setState(() {
+                          descriptionError = descError;
+                          amountError = amtError;
+                        });
+                        return;
+                      }
+                      double debit = selectedType == 'debit' ? amount! : 0;
+                      double credit = selectedType == 'credit' ? amount! : 0;
+                      final entry = LedgerEntry(
+                        id: DateTime.now().millisecondsSinceEpoch,
+                        description: descriptionController.text,
+                        debit: debit,
+                        credit: credit,
+                        date: selectedDate,
+                      );
+                      await controller.addLedgerEntry(entry);
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
         ),
       ),
     );
