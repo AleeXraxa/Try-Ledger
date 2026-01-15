@@ -398,6 +398,24 @@ class InventoryView extends StatelessWidget {
                               ),
                             ),
                             Container(
+                              margin: EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.green.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.download_outlined,
+                                  color: Colors.green,
+                                ),
+                                onPressed: () =>
+                                    controller.downloadInvoice(invoice),
+                                tooltip: 'Download',
+                                iconSize: 20,
+                                padding: EdgeInsets.all(8),
+                              ),
+                            ),
+                            Container(
                               decoration: BoxDecoration(
                                 color: Colors.red.withOpacity(0.1),
                                 borderRadius: BorderRadius.circular(8),
