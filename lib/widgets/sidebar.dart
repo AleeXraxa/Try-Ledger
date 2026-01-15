@@ -11,7 +11,7 @@ class Sidebar extends StatelessWidget {
   final List<String> menuItems = [
     'Dashboard',
     'Ledger',
-    'Inventory',
+    'Invoices',
     'Reports',
     'Backup',
   ];

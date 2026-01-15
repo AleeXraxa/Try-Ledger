@@ -10,6 +10,7 @@ import '../models/invoice_model.dart';
 import 'add_product_dialog.dart';
 import 'purchase_dialog.dart';
 import 'invoice_details_dialog.dart';
+import 'view_all_products_dialog.dart';
 
 class InventoryView extends StatelessWidget {
   final InventoryController controller = Get.put(InventoryController());
@@ -163,6 +164,18 @@ class InventoryView extends StatelessWidget {
                         showDialog(
                           context: context,
                           builder: (context) => AddProductDialog(),
+                        );
+                      },
+                    ),
+                    SizedBox(width: 12),
+                    _buildPremiumButton(
+                      'View All Products',
+                      Icons.view_list,
+                      AppColors.accent,
+                      () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => ViewAllProductsDialog(),
                         );
                       },
                     ),
