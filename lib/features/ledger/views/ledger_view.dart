@@ -1,3 +1,4 @@
+/*  */
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../utils/screen_utils.dart';
@@ -10,18 +11,28 @@ import '../models/ledger_entry_model.dart';
 
 class LedgerView extends StatelessWidget {
   final LedgerController controller = Get.put(LedgerController());
-  final double openingBalance = 0; // Can be made configurable
 
-  List<Map<String, String>> _buildLedgerRows(List<LedgerEntry> entries) {
+  List<Map<String, String>> _buildLedgerRows(
+    List<LedgerEntry> entries,
+    double openingBalance,
+  ) {
     List<Map<String, String>> rows = [];
     double runningBalance = openingBalance;
 
     // Add opening balance row if there are entries or opening balance is not zero
     if (openingBalance != 0 || entries.isNotEmpty) {
+      String openingDate = '';
+      if (controller.isFiltered.value && controller.fromDate.value != null) {
+        openingDate = formatDate(
+          controller.fromDate.value!.subtract(Duration(days: 1)),
+        );
+      } else if (entries.isNotEmpty) {
+        openingDate = formatDate(
+          entries.first.date.subtract(Duration(days: 1)),
+        );
+      }
       rows.add({
-        'Date': entries.isNotEmpty
-            ? formatDate(entries.first.date.subtract(Duration(days: 1)))
-            : '',
+        'Date': openingDate,
         'Description': 'Opening Balance',
         'Debit': '',
         'Credit': '',
@@ -219,8 +230,20 @@ class LedgerView extends StatelessWidget {
           ),
           SizedBox(height: 24),
           Expanded(
-            child: Obx(
-              () => controller.filteredEntries.isEmpty
+            child: Obx(() {
+              double openingBalance = 0.0;
+              if (controller.isFiltered.value &&
+                  controller.fromDate.value != null) {
+                // Calculate balance up to fromDate
+                for (var entry in controller.ledgerEntries) {
+                  if (entry.date.isBefore(controller.fromDate.value!)) {
+                    openingBalance += entry.debit - entry.credit;
+                  } else {
+                    break; // since sorted
+                  }
+                }
+              }
+              return controller.filteredEntries.isEmpty
                   ? _buildEmptyState(context)
                   : SaaSTable(
                       title: '', // Remove title since we have it above
@@ -239,7 +262,10 @@ class LedgerView extends StatelessWidget {
                         'currency',
                         'currency',
                       ],
-                      rows: _buildLedgerRows(controller.filteredEntries),
+                      rows: _buildLedgerRows(
+                        controller.filteredEntries,
+                        openingBalance,
+                      ),
                       onAddPressed: () {
                         // Add transaction
                       },
@@ -250,12 +276,18 @@ class LedgerView extends StatelessWidget {
                         // Export
                       },
                       onRowTap: (index) {
-                        if (index == 0)
+                        if (index == 0 && openingBalance != 0)
                           return; // Opening balance row, no details
-                        _showEntryDetailsDialog(
-                          context,
-                          controller.filteredEntries[index - 1],
-                        );
+                        int entryIndex = openingBalance != 0
+                            ? index - 1
+                            : index;
+                        if (entryIndex >= 0 &&
+                            entryIndex < controller.filteredEntries.length) {
+                          _showEntryDetailsDialog(
+                            context,
+                            controller.filteredEntries[entryIndex],
+                          );
+                        }
                       },
                       onActionPressed: (index, action) {
                         if (action == 'edit') {
@@ -265,8 +297,8 @@ class LedgerView extends StatelessWidget {
                         }
                       },
                       isLoading: false,
-                    ),
-            ),
+                    );
+            }),
           ),
         ],
       ),

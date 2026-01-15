@@ -18,7 +18,8 @@ class LedgerController extends GetxController {
   }
 
   void loadLedger() async {
-    ledgerEntries.value = await _service.getLedgerEntries();
+    ledgerEntries.value = (await _service.getLedgerEntries())
+      ..sort((a, b) => a.date.compareTo(b.date));
     filteredEntries.value = ledgerEntries;
   }
 
