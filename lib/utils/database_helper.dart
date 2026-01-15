@@ -178,4 +178,63 @@ class DatabaseHelper {
     Database db = await database;
     await db.delete('invoices', where: 'id = ?', whereArgs: [id]);
   }
+
+  // Backup method
+  Future<Map<String, dynamic>> exportAllData() async {
+    Database db = await database;
+
+    // Get all data from all tables
+    List<Map<String, dynamic>> ledgerEntries = await db.query('ledger_entries');
+    List<Map<String, dynamic>> products = await db.query('products');
+    List<Map<String, dynamic>> invoices = await db.query('invoices');
+
+    return {
+      'version': 2,
+      'exported_at': DateTime.now().toIso8601String(),
+      'data': {
+        'ledger_entries': ledgerEntries,
+        'products': products,
+        'invoices': invoices,
+      },
+    };
+  }
+
+  // Restore method
+  Future<void> importAllData(Map<String, dynamic> backupData) async {
+    Database db = await database;
+
+    // Clear existing data
+    await db.delete('ledger_entries');
+    await db.delete('products');
+    await db.delete('invoices');
+
+    // Import ledger entries
+    if (backupData['data']['ledger_entries'] != null) {
+      List<Map<String, dynamic>> ledgerEntries =
+          List<Map<String, dynamic>>.from(backupData['data']['ledger_entries']);
+      for (var entry in ledgerEntries) {
+        await db.insert('ledger_entries', entry);
+      }
+    }
+
+    // Import products
+    if (backupData['data']['products'] != null) {
+      List<Map<String, dynamic>> products = List<Map<String, dynamic>>.from(
+        backupData['data']['products'],
+      );
+      for (var product in products) {
+        await db.insert('products', product);
+      }
+    }
+
+    // Import invoices
+    if (backupData['data']['invoices'] != null) {
+      List<Map<String, dynamic>> invoices = List<Map<String, dynamic>>.from(
+        backupData['data']['invoices'],
+      );
+      for (var invoice in invoices) {
+        await db.insert('invoices', invoice);
+      }
+    }
+  }
 }
