@@ -105,6 +105,83 @@ class BackupView extends StatelessWidget {
               ],
             ),
           ),
+          SizedBox(height: 24),
+          Expanded(
+            child: Container(
+              padding: EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  colors: [
+                    AppColors.background.withOpacity(0.5),
+                    AppColors.background.withOpacity(0.3),
+                  ],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                ),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.primary.withOpacity(0.1),
+                  width: 1,
+                ),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 3,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: AppColors.accent,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      SizedBox(width: 10),
+                      Text(
+                        'Backup History',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 16),
+                  Expanded(
+                    child: Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(
+                            Icons.history,
+                            size: 64,
+                            color: AppColors.primary.withOpacity(0.5),
+                          ),
+                          SizedBox(height: 16),
+                          Text(
+                            'No backup history yet',
+                            style: AppStyles.headingStyle.copyWith(
+                              fontSize: 18,
+                              color: AppColors.neutral,
+                            ),
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            'Create your first backup to see history here',
+                            style: AppStyles.bodyStyle.copyWith(
+                              color: AppColors.neutral,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         ],
       ),
     );
