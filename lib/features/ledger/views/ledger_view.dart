@@ -1,6 +1,11 @@
 /*  */
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:pdf/pdf.dart';
+import 'package:open_file/open_file.dart';
+import 'package:path_provider/path_provider.dart';
+import 'dart:io';
 import '../../../utils/screen_utils.dart';
 import '../../../utils/helpers.dart';
 import '../../../widgets/saas_table.dart';
@@ -128,7 +133,7 @@ class LedgerView extends StatelessWidget {
                       Icons.bar_chart,
                       AppColors.accent,
                       () {
-                        // Generate report logic
+                        _showGenerateReportDialog(context);
                       },
                     ),
                   ],
@@ -890,16 +895,412 @@ class LedgerView extends StatelessWidget {
     );
   }
 
+  void _showGenerateReportDialog(BuildContext context) {
+    DateTime? fromDate;
+    DateTime? toDate;
+
+    showDialog(
+      context: context,
+      builder: (context) => Dialog(
+        backgroundColor: Colors.transparent,
+        child: Container(
+          width: 500,
+          padding: EdgeInsets.all(24),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                AppColors.background,
+                AppColors.background.withOpacity(0.95),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(20),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withOpacity(0.2),
+                blurRadius: 20,
+                offset: Offset(0, 10),
+              ),
+              BoxShadow(
+                color: Colors.black.withOpacity(0.1),
+                blurRadius: 40,
+                offset: Offset(0, 20),
+              ),
+            ],
+            border: Border.all(
+              color: AppColors.primary.withOpacity(0.1),
+              width: 1,
+            ),
+          ),
+          child: StatefulBuilder(
+            builder: (context, setState) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Container(
+                        width: 4,
+                        height: 24,
+                        decoration: BoxDecoration(
+                          color: AppColors.primary,
+                          borderRadius: BorderRadius.circular(2),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Text(
+                        'Generate Ledger Report',
+                        style: AppStyles.headingStyle.copyWith(
+                          fontSize: 20,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                      Spacer(),
+                      IconButton(
+                        onPressed: () => Navigator.of(context).pop(),
+                        icon: Icon(Icons.close, color: AppColors.neutral),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24),
+                  Text(
+                    'Select Date Range',
+                    style: AppStyles.bodyStyle.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _buildDateField(
+                          context,
+                          fromDate ?? DateTime.now(),
+                          (date) => setState(() => fromDate = date),
+                          label: 'From Date',
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: _buildDateField(
+                          context,
+                          toDate ?? DateTime.now(),
+                          (date) => setState(() => toDate = date),
+                          label: 'To Date',
+                        ),
+                      ),
+                    ],
+                  ),
+                  SizedBox(height: 24),
+                  _buildPremiumButton(
+                    'Generate PDF Report',
+                    Icons.picture_as_pdf,
+                    AppColors.primary,
+                    () async {
+                      if (fromDate == null || toDate == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Please select both dates')),
+                        );
+                        return;
+                      }
+                      await _generateLedgerReport(fromDate!, toDate!);
+                      Navigator.of(context).pop();
+                    },
+                  ),
+                ],
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _generateLedgerReport(DateTime fromDate, DateTime toDate) async {
+    // Filter entries for the date range
+    List<LedgerEntry> reportEntries = controller.ledgerEntries.where((entry) {
+      return entry.date.isAtSameMomentAs(fromDate) ||
+          entry.date.isAfter(fromDate) &&
+              entry.date.isBefore(toDate.add(Duration(days: 1)));
+    }).toList();
+
+    // Calculate opening balance
+    double openingBalance = 0.0;
+    for (var entry in controller.ledgerEntries) {
+      if (entry.date.isBefore(fromDate)) {
+        openingBalance += entry.debit - entry.credit;
+      } else {
+        break;
+      }
+    }
+
+    // Create PDF
+    final pdf = pw.Document();
+
+    pdf.addPage(
+      pw.Page(
+        build: (pw.Context context) {
+          return pw.Column(
+            crossAxisAlignment: pw.CrossAxisAlignment.start,
+            children: [
+              // Header
+              pw.Center(
+                child: pw.Text(
+                  'Wintop Pharma',
+                  style: pw.TextStyle(
+                    fontSize: 32,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.blue900,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 8),
+              pw.Center(
+                child: pw.Text(
+                  'Ledger',
+                  style: pw.TextStyle(
+                    fontSize: 24,
+                    fontWeight: pw.FontWeight.bold,
+                    color: PdfColors.black,
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 16),
+              pw.Row(
+                children: [
+                  pw.Text(
+                    'Date: ${formatDate(DateTime.now())}',
+                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                  ),
+                  pw.Spacer(),
+                ],
+              ),
+              pw.SizedBox(height: 16),
+              pw.Text(
+                'Period: From ${formatDate(fromDate)} To ${formatDate(toDate)}',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+              ),
+              pw.SizedBox(height: 16),
+              pw.Table(
+                border: pw.TableBorder.all(color: PdfColors.grey300),
+                columnWidths: {
+                  0: pw.FlexColumnWidth(2),
+                  1: pw.FlexColumnWidth(4),
+                  2: pw.FlexColumnWidth(2),
+                  3: pw.FlexColumnWidth(2),
+                  4: pw.FlexColumnWidth(2),
+                },
+                children: [
+                  pw.TableRow(
+                    decoration: pw.BoxDecoration(color: PdfColors.grey100),
+                    children: [
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(12),
+                        child: pw.Text(
+                          'Date',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(12),
+                        child: pw.Text(
+                          'Description',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(12),
+                        child: pw.Text(
+                          'Debit',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(12),
+                        child: pw.Text(
+                          'Credit',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(12),
+                        child: pw.Text(
+                          'Balance',
+                          style: pw.TextStyle(
+                            fontWeight: pw.FontWeight.bold,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  // Opening balance row
+                  if (openingBalance != 0 || reportEntries.isNotEmpty)
+                    pw.TableRow(
+                      children: [
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            formatDate(fromDate.subtract(Duration(days: 1))),
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            'Opening Balance',
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 10)),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 10)),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            formatCurrency(openingBalance),
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                      ],
+                    ),
+                  // Entries
+                  ...reportEntries.map((entry) {
+                    openingBalance += entry.debit - entry.credit;
+                    return pw.TableRow(
+                      children: [
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            formatDate(entry.date),
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            entry.description,
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            entry.debit > 0 ? formatCurrency(entry.debit) : '',
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            entry.credit > 0
+                                ? formatCurrency(entry.credit)
+                                : '',
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(12),
+                          child: pw.Text(
+                            formatCurrency(openingBalance),
+                            style: pw.TextStyle(fontSize: 10),
+                          ),
+                        ),
+                      ],
+                    );
+                  }),
+                ],
+              ),
+              pw.SizedBox(height: 16),
+              pw.Align(
+                alignment: pw.Alignment.centerRight,
+                child: pw.Container(
+                  padding: pw.EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: pw.BoxDecoration(
+                    color: PdfColors.grey100,
+                    border: pw.Border.all(color: PdfColors.grey300),
+                    borderRadius: pw.BorderRadius.circular(4),
+                  ),
+                  child: pw.Text(
+                    'Closing Balance: ${formatCurrency(openingBalance)}',
+                    style: pw.TextStyle(
+                      fontSize: 14,
+                      fontWeight: pw.FontWeight.bold,
+                      color: PdfColors.black,
+                    ),
+                  ),
+                ),
+              ),
+              pw.SizedBox(height: 32),
+              pw.Divider(),
+              pw.SizedBox(height: 8),
+              pw.Center(
+                child: pw.Text(
+                  'Software by: TryUnity Solutions',
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Center(
+                child: pw.Text(
+                  'Email: dev-alee@outlook.com',
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                ),
+              ),
+              pw.SizedBox(height: 4),
+              pw.Center(
+                child: pw.Text(
+                  'Phone: +92-302-3476605',
+                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+                ),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+
+    // Save and open PDF
+    final output = await getTemporaryDirectory();
+    final file = File(
+      '${output.path}/ledger_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+    );
+    await file.writeAsBytes(await pdf.save());
+
+    await OpenFile.open(file.path);
+  }
+
   Widget _buildDateField(
     BuildContext context,
     DateTime selectedDate,
-    Function(DateTime) onDateChanged,
-  ) {
+    Function(DateTime) onDateChanged, {
+    String label = 'Date',
+  }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Date',
+          label,
           style: AppStyles.bodyStyle.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
