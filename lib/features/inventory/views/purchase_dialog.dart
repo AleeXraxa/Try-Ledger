@@ -8,6 +8,8 @@ import '../../../utils/database_helper.dart';
 import '../controllers/inventory_controller.dart';
 import '../models/product_model.dart';
 import '../models/invoice_model.dart';
+import '../../ledger/controllers/ledger_controller.dart';
+import '../../ledger/models/ledger_entry_model.dart';
 
 class DateInputFormatter extends TextInputFormatter {
   @override
@@ -201,6 +203,16 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
     await DatabaseHelper().insertInvoice(invoice);
     // Reload invoices in controller
     controller.loadInvoices();
+    // Add to ledger as credit entry
+    final LedgerController ledgerController = Get.find<LedgerController>();
+    LedgerEntry entry = LedgerEntry(
+      id: DateTime.now().millisecondsSinceEpoch,
+      description: 'Purchase Invoice - ${invoice.reference}',
+      debit: 0,
+      credit: total,
+      date: invoice.date,
+    );
+    await ledgerController.addLedgerEntry(entry);
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Purchase invoice saved successfully!')),
