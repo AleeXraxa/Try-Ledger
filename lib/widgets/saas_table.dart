@@ -149,7 +149,7 @@ class _SaaSTableState extends State<SaaSTable> {
                   Expanded(
                     child: Align(
                       alignment: Alignment.centerLeft,
-                      child: _buildCellContent(value, type, colName),
+                      child: _buildCellContent(value, type, colName, index),
                     ),
                   ),
                   if (colIndex < widget.columns.length - 1)
@@ -167,7 +167,12 @@ class _SaaSTableState extends State<SaaSTable> {
     );
   }
 
-  Widget _buildCellContent(String value, String type, String colName) {
+  Widget _buildCellContent(
+    String value,
+    String type,
+    String colName,
+    int rowIndex,
+  ) {
     switch (type) {
       case 'currency':
         return Text(
@@ -201,6 +206,23 @@ class _SaaSTableState extends State<SaaSTable> {
                 fontWeight: FontWeight.bold,
                 color: label == 'Dr' ? Colors.red : Colors.green,
               ),
+            ),
+          ],
+        );
+      case 'actions':
+        return Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            IconButton(
+              icon: Icon(Icons.edit, color: AppColors.primary),
+              onPressed: () => widget.onActionPressed?.call(rowIndex, 'edit'),
+              tooltip: 'Edit',
+            ),
+            SizedBox(width: 8),
+            IconButton(
+              icon: Icon(Icons.delete, color: Colors.red),
+              onPressed: () => widget.onActionPressed?.call(rowIndex, 'delete'),
+              tooltip: 'Delete',
             ),
           ],
         );

@@ -1,28 +1,25 @@
-class LedgerEntry {
+class DrLedgerEntry {
   final int id;
   final String description;
   final double debit;
   final double credit;
   final DateTime date;
-  final int? companyId;
 
-  LedgerEntry({
+  DrLedgerEntry({
     required this.id,
     required this.description,
     required this.debit,
     required this.credit,
     required this.date,
-    this.companyId,
   });
 
-  factory LedgerEntry.fromJson(Map<String, dynamic> json) {
-    return LedgerEntry(
+  factory DrLedgerEntry.fromJson(Map<String, dynamic> json) {
+    return DrLedgerEntry(
       id: json['id'],
       description: json['description'],
       debit: json['debit'],
       credit: json['credit'],
       date: DateTime.parse(json['date']),
-      companyId: json['company_id'],
     );
   }
 
@@ -33,7 +30,6 @@ class LedgerEntry {
       'debit': debit,
       'credit': credit,
       'date': date.toIso8601String(),
-      'company_id': companyId,
     };
   }
 }

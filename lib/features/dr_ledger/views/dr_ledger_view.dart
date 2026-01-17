@@ -1,4 +1,3 @@
-/*  */
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:pdf/widgets.dart' as pw;
@@ -11,15 +10,13 @@ import '../../../utils/helpers.dart';
 import '../../../widgets/saas_table.dart';
 import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
-import '../controllers/ledger_controller.dart';
-import '../models/ledger_entry_model.dart';
-import '../../company/controllers/company_controller.dart';
-import '../../company/models/company_model.dart';
+import '../controllers/dr_ledger_controller.dart';
+import '../../ledger/models/ledger_entry_model.dart';
 
-class LedgerView extends StatelessWidget {
-  final LedgerController controller = Get.put(LedgerController());
+class DrLedgerView extends StatelessWidget {
+  final DrLedgerController controller = Get.put(DrLedgerController());
 
-  List<Map<String, String>> _buildLedgerRows(
+  List<Map<String, String>> _buildDrLedgerRows(
     List<LedgerEntry> entries,
     double openingBalance,
   ) {
@@ -65,201 +62,7 @@ class LedgerView extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: EdgeInsets.all(ScreenUtils.setWidth(16)),
-      child: _buildLedgerView(context),
-    );
-  }
-
-  Widget _buildCompanySelectionView(BuildContext context) {
-    final companyController = Get.find<CompanyController>();
-    return Center(
-      child: Container(
-        constraints: BoxConstraints(maxWidth: 600),
-        padding: EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.background,
-              AppColors.background.withOpacity(0.9),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
-              blurRadius: 20,
-              offset: Offset(0, 10),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 40,
-              offset: Offset(0, 20),
-            ),
-          ],
-          border: Border.all(
-            color: AppColors.primary.withOpacity(0.08),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 4,
-              height: 24,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Select Company',
-              style: AppStyles.headingStyle.copyWith(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Choose a company to view its ledger',
-              style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
-            ),
-            SizedBox(height: 32),
-            Obx(() {
-              if (companyController.companies.isEmpty) {
-                return Column(
-                  children: [
-                    Icon(
-                      Icons.business,
-                      size: 64,
-                      color: AppColors.primary.withOpacity(0.6),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No Companies Available',
-                      style: AppStyles.headingStyle.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Please add companies first in the Company section.',
-                      style: AppStyles.bodyStyle.copyWith(
-                        color: AppColors.neutral,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                );
-              }
-              return Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: companyController.companies.map((company) {
-                  return _buildCompanySelectionCard(context, company);
-                }).toList(),
-              );
-            }),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildCompanySelectionCard(BuildContext context, Company company) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        bool isHovered = false;
-        return InkWell(
-          onTap: () => controller.selectCompany(company.id),
-          onHover: (value) => setState(() => isHovered = value),
-          borderRadius: BorderRadius.circular(16),
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            width: 200,
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isHovered
-                    ? [
-                        AppColors.primary.withOpacity(0.1),
-                        AppColors.primary.withOpacity(0.05),
-                      ]
-                    : [
-                        AppColors.background,
-                        AppColors.background.withOpacity(0.8),
-                      ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isHovered
-                    ? AppColors.primary.withOpacity(0.3)
-                    : AppColors.neutral.withOpacity(0.2),
-                width: 1,
-              ),
-              boxShadow: isHovered
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
-                        blurRadius: 12,
-                        offset: Offset(0, 6),
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.business,
-                  size: 32,
-                  color: isHovered ? AppColors.primary : AppColors.neutral,
-                ),
-                SizedBox(height: 12),
-                Text(
-                  company.name,
-                  style: AppStyles.bodyStyle.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 4),
-                Text(
-                  company.type,
-                  style: AppStyles.bodyStyle.copyWith(
-                    fontSize: 12,
-                    color: AppColors.neutral,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
-    );
-  }
-
-  Widget _buildLedgerView(BuildContext context) {
-    return Obx(() {
-      final companyController = Get.find<CompanyController>();
-      final selectedCompany = companyController.companies.firstWhereOrNull(
-        (c) => c.id == controller.selectedCompanyId.value,
-      );
-
-      return Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
@@ -279,11 +82,13 @@ class LedgerView extends StatelessWidget {
                   color: AppColors.primary.withOpacity(0.06),
                   blurRadius: 20,
                   offset: Offset(0, 10),
+                  spreadRadius: 0,
                 ),
                 BoxShadow(
                   color: Colors.black.withOpacity(0.03),
                   blurRadius: 40,
                   offset: Offset(0, 20),
+                  spreadRadius: 0,
                 ),
               ],
               border: Border.all(
@@ -305,344 +110,199 @@ class LedgerView extends StatelessWidget {
                       ),
                     ),
                     SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Company Ledger',
-                            style: AppStyles.headingStyle.copyWith(
-                              fontSize: 20,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                          if (selectedCompany != null) ...[
-                            SizedBox(height: 4),
-                            Text(
-                              selectedCompany.name,
-                              style: AppStyles.bodyStyle.copyWith(
-                                color: AppColors.primary,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ],
+                    Text(
+                      'Dr Ledger',
+                      style: AppStyles.headingStyle.copyWith(
+                        fontSize: 20,
+                        fontWeight: FontWeight.w600,
                       ),
                     ),
-                    if (selectedCompany != null) ...[
-                      _buildPremiumButton(
-                        'Change Company',
-                        Icons.business,
-                        Colors.grey,
-                        () => controller.selectCompany(null),
-                      ),
-                      SizedBox(width: 12),
-                      _buildPremiumButton(
-                        'Add Entry',
-                        Icons.add,
-                        AppColors.primary,
-                        () {
-                          _showAddEntryDialog(context);
-                        },
-                      ),
-                      SizedBox(width: 12),
-                      _buildPremiumButton(
-                        'Generate Report',
-                        Icons.bar_chart,
-                        AppColors.accent,
-                        () {
-                          _showGenerateReportDialog(context);
-                        },
-                      ),
-                    ],
-                  ],
-                ),
-                if (selectedCompany == null) ...[
-                  SizedBox(height: 8),
-                  Text(
-                    'Select a company to view its ledger',
-                    style: AppStyles.bodyStyle.copyWith(
-                      color: AppColors.neutral,
-                    ),
-                  ),
-                  SizedBox(height: 24),
-                  Center(
-                    child: _buildPremiumButton(
-                      'Select Company',
-                      Icons.business,
+                    Spacer(),
+                    _buildPremiumButton(
+                      'Add Entry',
+                      Icons.add,
                       AppColors.primary,
                       () {
-                        _showCompanySelectionDialog(context);
+                        _showAddEntryDialog(context);
                       },
                     ),
-                  ),
-                ] else ...[
-                  SizedBox(height: 8),
-                  Text(
-                    'Track financial transactions for ${selectedCompany.name}',
-                    style: AppStyles.bodyStyle.copyWith(
-                      color: AppColors.neutral,
+                    SizedBox(width: 12),
+                    _buildPremiumButton(
+                      'Generate Report',
+                      Icons.bar_chart,
+                      AppColors.accent,
+                      () {
+                        _showGenerateReportDialog(context);
+                      },
                     ),
-                  ),
-                  SizedBox(height: 24),
-                  // Filter Section
-                  Container(
-                    padding: EdgeInsets.all(20),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.background.withOpacity(0.5),
-                          AppColors.background.withOpacity(0.3),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(16),
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.1),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 3,
-                              height: 20,
-                              decoration: BoxDecoration(
-                                color: AppColors.accent,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            SizedBox(width: 10),
-                            Text(
-                              'Filter Transactions',
-                              style: AppStyles.bodyStyle.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: AppColors.textPrimary,
-                              ),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 16),
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildDatePicker(
-                                'From Date',
-                                Icons.calendar_today,
-                                true, // isFromDate
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            Expanded(
-                              child: _buildDatePicker(
-                                'To Date',
-                                Icons.calendar_today,
-                                false, // isFromDate
-                              ),
-                            ),
-                            SizedBox(width: 16),
-                            _buildPremiumButton(
-                              'Apply Filter',
-                              Icons.filter_list,
-                              AppColors.primary,
-                              () {
-                                controller.applyDateFilter();
-                              },
-                            ),
-                            SizedBox(width: 12),
-                            Obx(
-                              () => controller.isFiltered.value
-                                  ? _buildPremiumButton(
-                                      'Clear Filter',
-                                      Icons.clear,
-                                      Colors.grey,
-                                      () {
-                                        controller.clearFilter();
-                                      },
-                                    )
-                                  : SizedBox.shrink(),
-                            ),
-                          ],
-                        ),
+                  ],
+                ),
+                SizedBox(height: 8),
+                Text(
+                  'Track debit transactions',
+                  style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
+                ),
+                SizedBox(height: 24),
+                // Filter Section
+                Container(
+                  padding: EdgeInsets.all(20),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.background.withOpacity(0.5),
+                        AppColors.background.withOpacity(0.3),
                       ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(16),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.1),
+                      width: 1,
                     ),
                   ),
-                ],
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 3,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: AppColors.accent,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          SizedBox(width: 10),
+                          Text(
+                            'Filter Transactions',
+                            style: AppStyles.bodyStyle.copyWith(
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _buildDatePicker(
+                              'From Date',
+                              Icons.calendar_today,
+                              true, // isFromDate
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: _buildDatePicker(
+                              'To Date',
+                              Icons.calendar_today,
+                              false, // isFromDate
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          _buildPremiumButton(
+                            'Apply Filter',
+                            Icons.filter_list,
+                            AppColors.primary,
+                            () {
+                              controller.applyDateFilter();
+                            },
+                          ),
+                          SizedBox(width: 12),
+                          Obx(
+                            () => controller.isFiltered.value
+                                ? _buildPremiumButton(
+                                    'Clear Filter',
+                                    Icons.clear,
+                                    Colors.grey,
+                                    () {
+                                      controller.clearFilter();
+                                    },
+                                  )
+                                : SizedBox.shrink(),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
-          if (selectedCompany != null) ...[
-            SizedBox(height: 24),
-            Expanded(
-              child: Obx(() {
-                double openingBalance = 0.0;
-                if (controller.isFiltered.value &&
-                    controller.fromDate.value != null) {
-                  // Calculate balance up to fromDate
-                  for (var entry in controller.ledgerEntries) {
-                    if (entry.date.isBefore(controller.fromDate.value!)) {
-                      openingBalance += entry.debit - entry.credit;
-                    } else {
-                      break; // since sorted
-                    }
+          SizedBox(height: 24),
+          Expanded(
+            child: Obx(() {
+              double openingBalance = 0.0;
+              if (controller.isFiltered.value &&
+                  controller.fromDate.value != null) {
+                // Calculate balance up to fromDate
+                for (var entry in controller.drLedgerEntries) {
+                  if (entry.date.isBefore(controller.fromDate.value!)) {
+                    openingBalance += entry.debit - entry.credit;
+                  } else {
+                    break; // since sorted
                   }
                 }
-                return controller.filteredEntries.isEmpty
-                    ? _buildEmptyState(context)
-                    : SaaSTable(
-                        title: '', // Remove title since we have it above
-                        subtitle: null,
-                        columns: [
-                          'Date',
-                          'Description',
-                          'Debit',
-                          'Credit',
-                          'Balance',
-                        ],
-                        columnTypes: [
-                          'text',
-                          'text',
-                          'currency',
-                          'currency',
-                          'currency',
-                        ],
-                        rows: _buildLedgerRows(
-                          controller.filteredEntries,
-                          openingBalance,
-                        ),
-                        onAddPressed: () {
-                          // Add transaction
-                        },
-                        onFilterPressed: () {
-                          // Filter
-                        },
-                        onExportPressed: () {
-                          // Export
-                        },
-                        onRowTap: (index) {
-                          if (index == 0)
-                            return; // Opening balance row, no details
-                          int entryIndex = index - 1;
-                          if (entryIndex >= 0 &&
-                              entryIndex < controller.filteredEntries.length) {
-                            _showEntryDetailsDialog(
-                              context,
-                              controller.filteredEntries[entryIndex],
-                            );
-                          }
-                        },
-                        onActionPressed: (index, action) {
-                          if (action == 'edit') {
-                            // Edit
-                          } else if (action == 'delete') {
-                            // Delete
-                          }
-                        },
-                        isLoading: false,
-                      );
-              }),
-            ),
-          ],
-        ],
-      );
-    });
-  }
-
-  void _showCompanySelectionDialog(BuildContext context) {
-    final companyController = Get.find<CompanyController>();
-    showDialog(
-      context: context,
-      builder: (context) => Dialog(
-        backgroundColor: Colors.transparent,
-        child: Container(
-          width: 400,
-          padding: EdgeInsets.all(24),
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                AppColors.background,
-                AppColors.background.withOpacity(0.95),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withOpacity(0.2),
-                blurRadius: 20,
-                offset: Offset(0, 10),
-              ),
-            ],
-            border: Border.all(
-              color: AppColors.primary.withOpacity(0.1),
-              width: 1,
-            ),
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                children: [
-                  Container(
-                    width: 4,
-                    height: 24,
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Text(
-                    'Select Company',
-                    style: AppStyles.headingStyle.copyWith(
-                      fontSize: 20,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                  Spacer(),
-                  IconButton(
-                    onPressed: () => Navigator.of(context).pop(),
-                    icon: Icon(Icons.close, color: AppColors.neutral),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24),
-              Obx(() {
-                if (companyController.companies.isEmpty) {
-                  return Center(
-                    child: Text(
-                      'No companies available. Please add companies first.',
-                      style: AppStyles.bodyStyle,
-                      textAlign: TextAlign.center,
-                    ),
-                  );
-                }
-                return Column(
-                  children: companyController.companies.map((company) {
-                    return ListTile(
-                      leading: Icon(Icons.business, color: AppColors.primary),
-                      title: Text(company.name, style: AppStyles.bodyStyle),
-                      subtitle: Text(
-                        company.type,
-                        style: AppStyles.bodyStyle.copyWith(fontSize: 12),
+              }
+              return controller.filteredEntries.isEmpty
+                  ? _buildEmptyState(context)
+                  : SaaSTable(
+                      title: '', // Remove title since we have it above
+                      subtitle: null,
+                      columns: [
+                        'Date',
+                        'Description',
+                        'Debit',
+                        'Credit',
+                        'Balance',
+                      ],
+                      columnTypes: [
+                        'text',
+                        'text',
+                        'currency',
+                        'currency',
+                        'currency',
+                      ],
+                      rows: _buildDrLedgerRows(
+                        controller.filteredEntries,
+                        openingBalance,
                       ),
-                      onTap: () {
-                        controller.selectCompany(company.id);
-                        Navigator.of(context).pop();
+                      onAddPressed: () {
+                        // Add transaction
                       },
+                      onFilterPressed: () {
+                        // Filter
+                      },
+                      onExportPressed: () {
+                        // Export
+                      },
+                      onRowTap: (index) {
+                        if (index == 0)
+                          return; // Opening balance row, no details
+                        int entryIndex = index - 1;
+                        if (entryIndex >= 0 &&
+                            entryIndex < controller.filteredEntries.length) {
+                          _showEntryDetailsDialog(
+                            context,
+                            controller.filteredEntries[entryIndex],
+                          );
+                        }
+                      },
+                      onActionPressed: (index, action) {
+                        if (action == 'edit') {
+                          // Edit
+                        } else if (action == 'delete') {
+                          // Delete
+                        }
+                      },
+                      isLoading: false,
                     );
-                  }).toList(),
-                );
-              }),
-            ],
+            }),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -714,183 +374,6 @@ class LedgerView extends StatelessWidget {
         );
       },
     );
-  }
-
-  Widget _buildCompanySelector() {
-    final companyController = Get.find<CompanyController>();
-    return Obx(() {
-      String selectedCompanyName = 'All Companies';
-      if (controller.selectedCompanyId.value != null) {
-        final company = companyController.companies.firstWhereOrNull(
-          (c) => c.id == controller.selectedCompanyId.value,
-        );
-        if (company != null) {
-          selectedCompanyName = company.name;
-        }
-      }
-
-      return StatefulBuilder(
-        builder: (context, setState) {
-          bool isHovered = false;
-          return InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                  backgroundColor: Colors.transparent,
-                  child: Container(
-                    width: 400,
-                    padding: EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.background,
-                          AppColors.background.withOpacity(0.95),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.1),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Select Company',
-                              style: AppStyles.headingStyle.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Spacer(),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: Icon(Icons.close, color: AppColors.neutral),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 24),
-                        ListTile(
-                          title: Text(
-                            'All Companies',
-                            style: AppStyles.bodyStyle,
-                          ),
-                          onTap: () {
-                            controller.selectCompany(null);
-                            Navigator.of(context).pop();
-                          },
-                        ),
-                        ...companyController.companies.map((company) {
-                          return ListTile(
-                            title: Text(
-                              company.name,
-                              style: AppStyles.bodyStyle,
-                            ),
-                            onTap: () {
-                              controller.selectCompany(company.id);
-                              Navigator.of(context).pop();
-                            },
-                          );
-                        }).toList(),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-            onHover: (value) => setState(() => isHovered = value),
-            borderRadius: BorderRadius.circular(12),
-            child: AnimatedContainer(
-              duration: Duration(milliseconds: 300),
-              curve: Curves.easeOut,
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isHovered
-                    ? AppColors.primary.withOpacity(0.05)
-                    : AppColors.background.withOpacity(0.8),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isHovered
-                      ? AppColors.primary.withOpacity(0.3)
-                      : AppColors.neutral.withOpacity(0.2),
-                  width: 1,
-                ),
-                boxShadow: isHovered
-                    ? [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.1),
-                          blurRadius: 8,
-                          offset: Offset(0, 2),
-                        ),
-                      ]
-                    : null,
-              ),
-              child: Row(
-                children: [
-                  Icon(
-                    Icons.business,
-                    color: isHovered ? AppColors.primary : AppColors.neutral,
-                    size: 20,
-                  ),
-                  SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          'Company',
-                          style: AppStyles.bodyStyle.copyWith(
-                            fontSize: 12,
-                            color: AppColors.neutral,
-                            fontWeight: FontWeight.w500,
-                          ),
-                        ),
-                        SizedBox(height: 2),
-                        Text(
-                          selectedCompanyName,
-                          style: AppStyles.bodyStyle.copyWith(
-                            color: AppColors.textPrimary,
-                            fontWeight: FontWeight.w600,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  Icon(
-                    Icons.arrow_drop_down,
-                    color: AppColors.neutral,
-                    size: 20,
-                  ),
-                ],
-              ),
-            ),
-          );
-        },
-      );
-    });
   }
 
   Widget _buildDatePicker(String label, IconData icon, bool isFromDate) {
@@ -1012,7 +495,6 @@ class LedgerView extends StatelessWidget {
     final TextEditingController amountController = TextEditingController();
     DateTime selectedDate = DateTime.now();
     String selectedType = 'debit';
-    int? selectedCompanyId = controller.selectedCompanyId.value;
     String? descriptionError;
     String? amountError;
     if (entry != null) {
@@ -1021,7 +503,6 @@ class LedgerView extends StatelessWidget {
       amountController.text = (entry.debit > 0 ? entry.debit : entry.credit)
           .toString();
       selectedDate = entry.date;
-      selectedCompanyId = entry.companyId;
     }
 
     showDialog(
@@ -1077,8 +558,8 @@ class LedgerView extends StatelessWidget {
                       SizedBox(width: 12),
                       Text(
                         entry == null
-                            ? 'Add Ledger Entry'
-                            : 'Edit Ledger Entry',
+                            ? 'Add Dr Ledger Entry'
+                            : 'Edit Dr Ledger Entry',
                         style: AppStyles.headingStyle.copyWith(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -1104,12 +585,6 @@ class LedgerView extends StatelessWidget {
                     context,
                     selectedType,
                     (type) => selectedType = type,
-                  ),
-                  SizedBox(height: 16),
-                  _buildCompanyDropdown(
-                    context,
-                    selectedCompanyId,
-                    (companyId) => selectedCompanyId = companyId,
                   ),
                   SizedBox(height: 16),
                   _buildFormField(
@@ -1156,12 +631,11 @@ class LedgerView extends StatelessWidget {
                         debit: selectedType == 'debit' ? amount! : 0,
                         credit: selectedType == 'credit' ? amount! : 0,
                         date: selectedDate,
-                        companyId: selectedCompanyId,
                       );
                       if (entry == null) {
-                        await controller.addLedgerEntry(updatedEntry);
+                        await controller.addDrLedgerEntry(updatedEntry);
                       } else {
-                        await controller.updateLedgerEntry(updatedEntry);
+                        await controller.updateDrLedgerEntry(updatedEntry);
                       }
                       Navigator.of(context).pop();
                     },
@@ -1273,7 +747,7 @@ class LedgerView extends StatelessWidget {
                   ),
                   SizedBox(width: 12),
                   Text(
-                    'Ledger Entry Details',
+                    'Dr Ledger Entry Details',
                     style: AppStyles.headingStyle.copyWith(
                       fontSize: 20,
                       fontWeight: FontWeight.w600,
@@ -1402,7 +876,7 @@ class LedgerView extends StatelessWidget {
           ),
           TextButton(
             onPressed: () async {
-              await controller.deleteLedgerEntry(id);
+              await controller.deleteDrLedgerEntry(id);
               Navigator.of(context).pop();
             },
             child: Text(
@@ -1474,7 +948,7 @@ class LedgerView extends StatelessWidget {
                       ),
                       SizedBox(width: 12),
                       Text(
-                        'Generate Ledger Report',
+                        'Generate Dr Ledger Report',
                         style: AppStyles.headingStyle.copyWith(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
@@ -1529,7 +1003,7 @@ class LedgerView extends StatelessWidget {
                         );
                         return;
                       }
-                      await _generateLedgerReport(fromDate!, toDate!);
+                      await _generateDrLedgerReport(fromDate!, toDate!);
                       Navigator.of(context).pop();
                     },
                   ),
@@ -1542,9 +1016,12 @@ class LedgerView extends StatelessWidget {
     );
   }
 
-  Future<void> _generateLedgerReport(DateTime fromDate, DateTime toDate) async {
+  Future<void> _generateDrLedgerReport(
+    DateTime fromDate,
+    DateTime toDate,
+  ) async {
     // Filter entries for the date range
-    List<LedgerEntry> reportEntries = controller.ledgerEntries.where((entry) {
+    List<LedgerEntry> reportEntries = controller.drLedgerEntries.where((entry) {
       return entry.date.isAtSameMomentAs(fromDate) ||
           entry.date.isAfter(fromDate) &&
               entry.date.isBefore(toDate.add(Duration(days: 1)));
@@ -1552,7 +1029,7 @@ class LedgerView extends StatelessWidget {
 
     // Calculate opening balance
     double openingBalance = 0.0;
-    for (var entry in controller.ledgerEntries) {
+    for (var entry in controller.drLedgerEntries) {
       if (entry.date.isBefore(fromDate)) {
         openingBalance += entry.debit - entry.credit;
       } else {
@@ -1583,7 +1060,7 @@ class LedgerView extends StatelessWidget {
               pw.SizedBox(height: 8),
               pw.Center(
                 child: pw.Text(
-                  'Ledger',
+                  'Dr Ledger',
                   style: pw.TextStyle(
                     fontSize: 24,
                     fontWeight: pw.FontWeight.bold,
@@ -1806,7 +1283,7 @@ class LedgerView extends StatelessWidget {
     // Save and open PDF
     final output = await getTemporaryDirectory();
     final file = File(
-      '${output.path}/ledger_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
+      '${output.path}/dr_ledger_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
     );
     await file.writeAsBytes(await pdf.save());
 
@@ -1915,7 +1392,7 @@ class LedgerView extends StatelessWidget {
             ),
             SizedBox(height: 16),
             Text(
-              'No Ledger Entries Yet',
+              'No Dr Ledger Entries Yet',
               style: AppStyles.headingStyle.copyWith(
                 fontSize: 24,
                 fontWeight: FontWeight.w600,
@@ -1923,7 +1400,7 @@ class LedgerView extends StatelessWidget {
             ),
             SizedBox(height: 8),
             Text(
-              'Use the "Add Entry" button above to start tracking your financial transactions.',
+              'Use the "Add Entry" button above to start tracking your debit transactions.',
               style: AppStyles.bodyStyle.copyWith(
                 color: AppColors.neutral,
                 fontSize: 16,
@@ -2000,135 +1477,5 @@ class LedgerView extends StatelessWidget {
         ),
       ],
     );
-  }
-
-  Widget _buildCompanyDropdown(
-    BuildContext context,
-    int? selectedCompanyId,
-    Function(int?) onCompanyChanged,
-  ) {
-    final companyController = Get.find<CompanyController>();
-    return Obx(() {
-      String selectedCompanyName = 'Select Company';
-      if (selectedCompanyId != null) {
-        final company = companyController.companies.firstWhereOrNull(
-          (c) => c.id == selectedCompanyId,
-        );
-        if (company != null) {
-          selectedCompanyName = company.name;
-        }
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Company',
-            style: AppStyles.bodyStyle.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: 8),
-          InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                  backgroundColor: Colors.transparent,
-                  child: Container(
-                    width: 400,
-                    padding: EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.background,
-                          AppColors.background.withOpacity(0.95),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.1),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Select Company',
-                              style: AppStyles.headingStyle.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Spacer(),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: Icon(Icons.close, color: AppColors.neutral),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 24),
-                        ...companyController.companies.map((company) {
-                          return ListTile(
-                            title: Text(
-                              company.name,
-                              style: AppStyles.bodyStyle,
-                            ),
-                            onTap: () {
-                              onCompanyChanged(company.id);
-                              Navigator.of(context).pop();
-                            },
-                          );
-                        }).toList(),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.neutral.withOpacity(0.2)),
-                borderRadius: BorderRadius.circular(12),
-                color: AppColors.background.withOpacity(0.5),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.business, color: AppColors.primary),
-                  SizedBox(width: 12),
-                  Text(selectedCompanyName, style: AppStyles.bodyStyle),
-                  Spacer(),
-                  Icon(Icons.arrow_drop_down, color: AppColors.neutral),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    });
   }
 }

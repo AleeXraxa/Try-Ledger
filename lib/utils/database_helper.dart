@@ -5,6 +5,7 @@ import 'dart:io';
 import '../features/ledger/models/ledger_entry_model.dart';
 import '../features/inventory/models/product_model.dart';
 import '../features/inventory/models/invoice_model.dart';
+import '../features/company/models/company_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -25,7 +26,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'TryLedger.db');
     return await openDatabase(
       path,
-      version: 2,
+      version: 7,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -39,7 +40,8 @@ class DatabaseHelper {
         description TEXT NOT NULL,
         debit REAL NOT NULL,
         credit REAL NOT NULL,
-        date TEXT NOT NULL
+        date TEXT NOT NULL,
+        company_id INTEGER
       )
     ''');
 
@@ -78,6 +80,51 @@ class DatabaseHelper {
           total REAL NOT NULL
         )
       ''');
+
+      // Create company table
+      await db.execute('''
+        CREATE TABLE company (
+          id INTEGER PRIMARY KEY,
+          name TEXT NOT NULL,
+          type TEXT NOT NULL,
+          address TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          email TEXT NOT NULL
+        )
+      ''');
+    }
+    if (oldVersion < 3) {
+      // Create company table
+      await db.execute('''
+        CREATE TABLE company (
+          id INTEGER PRIMARY KEY,
+          name TEXT NOT NULL,
+          type TEXT NOT NULL,
+          address TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          email TEXT NOT NULL
+        )
+      ''');
+    }
+    if (oldVersion < 4) {
+      // Add type column to company table
+      await db.execute(
+        'ALTER TABLE company ADD COLUMN type TEXT NOT NULL DEFAULT ""',
+      );
+    }
+    if (oldVersion < 5) {
+      // Add company_id column to ledger_entries table
+      await db.execute(
+        'ALTER TABLE ledger_entries ADD COLUMN company_id INTEGER',
+      );
+    }
+    if (oldVersion < 6) {
+      // Add companyId column to products table
+      await db.execute('ALTER TABLE products ADD COLUMN companyId INTEGER');
+    }
+    if (oldVersion < 7) {
+      // Add companyId column to invoices table
+      await db.execute('ALTER TABLE invoices ADD COLUMN companyId INTEGER');
     }
   }
 
@@ -177,6 +224,37 @@ class DatabaseHelper {
   Future<void> deleteInvoice(int id) async {
     Database db = await database;
     await db.delete('invoices', where: 'id = ?', whereArgs: [id]);
+  }
+
+  // Company methods
+  Future<List<Company>> getCompanies() async {
+    Database db = await database;
+    List<Map<String, dynamic>> maps = await db.query('company');
+    return List.generate(maps.length, (i) {
+      return Company.fromJson(maps[i]);
+    });
+  }
+
+  Future<void> insertCompany(Company company) async {
+    Database db = await database;
+    Map<String, dynamic> data = company.toJson();
+    data.remove('id');
+    await db.insert('company', data);
+  }
+
+  Future<void> updateCompany(Company company) async {
+    Database db = await database;
+    await db.update(
+      'company',
+      company.toJson(),
+      where: 'id = ?',
+      whereArgs: [company.id],
+    );
+  }
+
+  Future<void> deleteCompany(int id) async {
+    Database db = await database;
+    await db.delete('company', where: 'id = ?', whereArgs: [id]);
   }
 
   // Backup method

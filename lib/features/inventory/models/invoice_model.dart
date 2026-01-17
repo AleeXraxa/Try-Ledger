@@ -6,6 +6,7 @@ class Invoice {
   final DateTime date;
   final List<Map<String, dynamic>> items;
   final double total;
+  final int? companyId;
 
   Invoice({
     required this.id,
@@ -13,6 +14,7 @@ class Invoice {
     required this.date,
     required this.items,
     required this.total,
+    this.companyId,
   });
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
@@ -22,6 +24,7 @@ class Invoice {
       date: DateTime.parse(json['date']),
       items: List<Map<String, dynamic>>.from(jsonDecode(json['items'])),
       total: json['total'],
+      companyId: json['companyId'] as int?,
     );
   }
 
@@ -32,6 +35,7 @@ class Invoice {
       'date': date.toIso8601String(),
       'items': jsonEncode(items),
       'total': total,
+      'companyId': companyId,
     };
   }
 }

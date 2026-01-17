@@ -10,6 +10,7 @@ import '../models/product_model.dart';
 import '../models/invoice_model.dart';
 import '../../ledger/controllers/ledger_controller.dart';
 import '../../ledger/models/ledger_entry_model.dart';
+import '../../company/controllers/company_controller.dart';
 
 class DateInputFormatter extends TextInputFormatter {
   @override
@@ -38,9 +39,11 @@ class PurchaseDialog extends StatefulWidget {
 
 class _PurchaseDialogState extends State<PurchaseDialog> {
   final InventoryController controller = Get.find<InventoryController>();
+  final CompanyController companyController = Get.find<CompanyController>();
 
   final TextEditingController _invoiceRefController = TextEditingController();
   final TextEditingController _invoiceDateController = TextEditingController();
+  int? selectedCompanyId;
   Product? selectedProduct;
   final TextEditingController _batchController = TextEditingController();
   final TextEditingController _expiryDateController = TextEditingController();
@@ -198,6 +201,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
       date: invoiceDate,
       items: selectedItems,
       total: total,
+      companyId: selectedCompanyId,
     );
     // Save to database
     await DatabaseHelper().insertInvoice(invoice);
@@ -304,6 +308,8 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
                     SizedBox(height: 16),
                     Row(
                       children: [
+                        Expanded(child: _buildCompanyDropdown()),
+                        SizedBox(width: 16),
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -319,12 +325,20 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
                               Obx(() {
                                 return DropdownButtonFormField<Product>(
                                   value: selectedProduct,
-                                  items: controller.products.map((product) {
-                                    return DropdownMenuItem<Product>(
-                                      value: product,
-                                      child: Text(product.name),
-                                    );
-                                  }).toList(),
+                                  items: controller.products
+                                      .where(
+                                        (product) =>
+                                            selectedCompanyId == null ||
+                                            product.companyId ==
+                                                selectedCompanyId,
+                                      )
+                                      .map((product) {
+                                        return DropdownMenuItem<Product>(
+                                          value: product,
+                                          child: Text(product.name),
+                                        );
+                                      })
+                                      .toList(),
                                   onChanged: (value) {
                                     setState(() {
                                       selectedProduct = value;
@@ -563,6 +577,62 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
           ),
           style: AppStyles.bodyStyle,
         ),
+      ],
+    );
+  }
+
+  Widget _buildCompanyDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Company',
+          style: AppStyles.bodyStyle.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: 8),
+        Obx(() {
+          return DropdownButtonFormField<int?>(
+            value: selectedCompanyId,
+            hint: Text('Select Company'),
+            items: companyController.companies.map((company) {
+              return DropdownMenuItem<int?>(
+                value: company.id,
+                child: Text(company.name),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedCompanyId = value;
+                selectedProduct = null;
+                _dpController.clear();
+              });
+            },
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.business, color: AppColors.primary),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppColors.neutral.withOpacity(0.2),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppColors.neutral.withOpacity(0.2),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.primary, width: 2),
+              ),
+              filled: true,
+              fillColor: AppColors.background.withOpacity(0.5),
+            ),
+          );
+        }),
       ],
     );
   }

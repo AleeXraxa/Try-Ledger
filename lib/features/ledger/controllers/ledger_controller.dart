@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../models/ledger_entry_model.dart';
 import '../services/ledger_service.dart';
+import '../../company/controllers/company_controller.dart';
 
 class LedgerController extends GetxController {
   final LedgerService _service = LedgerService();
@@ -10,6 +11,7 @@ class LedgerController extends GetxController {
   var fromDate = Rxn<DateTime>();
   var toDate = Rxn<DateTime>();
   var isFiltered = false.obs;
+  var selectedCompanyId = Rxn<int>();
 
   @override
   void onInit() {
@@ -20,7 +22,48 @@ class LedgerController extends GetxController {
   void loadLedger() async {
     ledgerEntries.value = (await _service.getLedgerEntries())
       ..sort((a, b) => a.date.compareTo(b.date));
-    filteredEntries.value = ledgerEntries;
+    applyFilters();
+  }
+
+  void selectCompany(int? companyId) {
+    selectedCompanyId.value = companyId;
+    applyFilters();
+  }
+
+  void applyFilters() {
+    List<LedgerEntry> entries = ledgerEntries;
+
+    // Filter by company
+    if (selectedCompanyId.value != null) {
+      entries = entries
+          .where((entry) => entry.companyId == selectedCompanyId.value)
+          .toList();
+    }
+
+    // Apply date filter
+    if (fromDate.value == null && toDate.value == null) {
+      filteredEntries.value = entries;
+      isFiltered.value = false;
+      return;
+    }
+
+    filteredEntries.value = entries.where((entry) {
+      bool matchesFromDate =
+          fromDate.value == null ||
+          entry.date.isAtSameMomentAs(fromDate.value!) ||
+          entry.date.isAfter(fromDate.value!);
+
+      bool matchesToDate =
+          toDate.value == null ||
+          entry.date.isAtSameMomentAs(toDate.value!) ||
+          entry.date.isBefore(
+            toDate.value!.add(Duration(days: 1)),
+          ); // Include the end date
+
+      return matchesFromDate && matchesToDate;
+    }).toList();
+
+    isFiltered.value = true;
   }
 
   Future<void> addLedgerEntry(LedgerEntry entry) async {
@@ -44,36 +87,12 @@ class LedgerController extends GetxController {
   }
 
   void applyDateFilter() {
-    if (fromDate.value == null && toDate.value == null) {
-      // No filter applied, show all entries
-      filteredEntries.value = ledgerEntries;
-      isFiltered.value = false;
-      return;
-    }
-
-    filteredEntries.value = ledgerEntries.where((entry) {
-      bool matchesFromDate =
-          fromDate.value == null ||
-          entry.date.isAtSameMomentAs(fromDate.value!) ||
-          entry.date.isAfter(fromDate.value!);
-
-      bool matchesToDate =
-          toDate.value == null ||
-          entry.date.isAtSameMomentAs(toDate.value!) ||
-          entry.date.isBefore(
-            toDate.value!.add(Duration(days: 1)),
-          ); // Include the end date
-
-      return matchesFromDate && matchesToDate;
-    }).toList();
-
-    isFiltered.value = true;
+    applyFilters();
   }
 
   void clearFilter() {
     fromDate.value = null;
     toDate.value = null;
-    filteredEntries.value = ledgerEntries;
-    isFiltered.value = false;
+    applyFilters();
   }
 }

@@ -8,11 +8,20 @@ import '../utils/screen_utils.dart';
 class Sidebar extends StatelessWidget {
   final LayoutController controller = Get.put(LayoutController());
 
-  final List<String> menuItems = ['Dashboard', 'Ledger', 'Invoices', 'Backup'];
+  final List<String> menuItems = [
+    'Dashboard',
+    'Company',
+    'Company Ledger',
+    'Dr Ledger',
+    'Invoices',
+    'Backup',
+  ];
 
   final List<IconData> menuIcons = [
     Icons.dashboard,
+    Icons.business,
     Icons.book,
+    Icons.account_balance,
     Icons.inventory,
     Icons.backup,
   ];

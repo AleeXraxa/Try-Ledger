@@ -3,8 +3,10 @@ import 'package:get/get.dart';
 import '../controllers/layout_controller.dart';
 import '../widgets/sidebar.dart';
 import '../features/dashboard/views/dashboard_view.dart';
+import '../features/company/views/company_view.dart';
 import '../features/inventory/views/inventory_view.dart';
 import '../features/ledger/views/ledger_view.dart';
+import '../features/dr_ledger/views/dr_ledger_view.dart';
 import '../features/backup/views/backup_view.dart';
 
 class MainLayoutScreen extends StatelessWidget {
@@ -12,7 +14,9 @@ class MainLayoutScreen extends StatelessWidget {
 
   final List<Widget> _screens = [
     DashboardView(),
+    CompanyView(),
     LedgerView(),
+    DrLedgerView(),
     InventoryView(),
     BackupView(),
   ];

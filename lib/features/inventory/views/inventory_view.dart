@@ -86,12 +86,6 @@ class InventoryView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    int totalInvoices = controller.invoices.length;
-    double totalAmount = controller.invoices.fold(
-      0.0,
-      (sum, invoice) => sum + invoice.total,
-    );
-
     return Container(
       padding: EdgeInsets.all(ScreenUtils.setWidth(16)),
       child: Column(
