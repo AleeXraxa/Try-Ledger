@@ -5,6 +5,9 @@ class LedgerEntry {
   final double credit;
   final DateTime date;
   final int? companyId;
+  final String? referenceNo;
+  final int? qty;
+  final double? rate;
 
   LedgerEntry({
     required this.id,
@@ -13,6 +16,9 @@ class LedgerEntry {
     required this.credit,
     required this.date,
     this.companyId,
+    this.referenceNo,
+    this.qty,
+    this.rate,
   });
 
   factory LedgerEntry.fromJson(Map<String, dynamic> json) {
@@ -23,6 +29,9 @@ class LedgerEntry {
       credit: json['credit'],
       date: DateTime.parse(json['date']),
       companyId: json['company_id'],
+      referenceNo: json['reference_no'],
+      qty: json['qty'],
+      rate: json['rate'] != null ? (json['rate'] as num).toDouble() : null,
     );
   }
 
@@ -34,6 +43,9 @@ class LedgerEntry {
       'credit': credit,
       'date': date.toIso8601String(),
       'company_id': companyId,
+      'reference_no': referenceNo,
+      'qty': qty,
+      'rate': rate,
     };
   }
 }

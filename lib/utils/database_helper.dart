@@ -24,12 +24,17 @@ class DatabaseHelper {
   Future<Database> _initDatabase() async {
     Directory documentsDirectory = await getApplicationDocumentsDirectory();
     String path = join(documentsDirectory.path, 'TryLedger.db');
-    return await openDatabase(
+    Database db = await openDatabase(
       path,
-      version: 8,
+      version: 9,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
+
+    // Ensure new columns exist (for existing databases)
+    await _ensureColumnsExist(db);
+
+    return db;
   }
 
   Future<void> _onCreate(Database db, int version) async {
@@ -41,7 +46,10 @@ class DatabaseHelper {
         debit REAL NOT NULL,
         credit REAL NOT NULL,
         date TEXT NOT NULL,
-        company_id INTEGER
+        company_id INTEGER,
+        reference_no TEXT,
+        qty INTEGER,
+        rate REAL
       )
     ''');
 
@@ -126,7 +134,52 @@ class DatabaseHelper {
       // Add companyId column to invoices table
       await db.execute('ALTER TABLE invoices ADD COLUMN companyId INTEGER');
     }
+    if (oldVersion < 8) {
+      // Add new columns to ledger_entries table
+      await db.execute(
+        'ALTER TABLE ledger_entries ADD COLUMN reference_no TEXT',
+      );
+      await db.execute('ALTER TABLE ledger_entries ADD COLUMN qty INTEGER');
+      await db.execute('ALTER TABLE ledger_entries ADD COLUMN rate REAL');
+    }
     // isActive column already exists in company table
+  }
+
+  Future<void> _ensureColumnsExist(Database db) async {
+    // Check if new columns exist in ledger_entries table
+    List<Map<String, dynamic>> columns = await db.rawQuery(
+      "PRAGMA table_info(ledger_entries)",
+    );
+
+    bool hasReferenceNo = columns.any((col) => col['name'] == 'reference_no');
+    bool hasQty = columns.any((col) => col['name'] == 'qty');
+    bool hasRate = columns.any((col) => col['name'] == 'rate');
+
+    try {
+      if (!hasReferenceNo) {
+        await db.execute(
+          'ALTER TABLE ledger_entries ADD COLUMN reference_no TEXT',
+        );
+      }
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+
+    try {
+      if (!hasQty) {
+        await db.execute('ALTER TABLE ledger_entries ADD COLUMN qty INTEGER');
+      }
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+
+    try {
+      if (!hasRate) {
+        await db.execute('ALTER TABLE ledger_entries ADD COLUMN rate REAL');
+      }
+    } catch (e) {
+      // Column might already exist, ignore
+    }
   }
 
   // Ledger Entry methods
@@ -266,14 +319,16 @@ class DatabaseHelper {
     List<Map<String, dynamic>> ledgerEntries = await db.query('ledger_entries');
     List<Map<String, dynamic>> products = await db.query('products');
     List<Map<String, dynamic>> invoices = await db.query('invoices');
+    List<Map<String, dynamic>> companies = await db.query('company');
 
     return {
-      'version': 2,
+      'version': 3,
       'exported_at': DateTime.now().toIso8601String(),
       'data': {
         'ledger_entries': ledgerEntries,
         'products': products,
         'invoices': invoices,
+        'companies': companies,
       },
     };
   }
@@ -286,6 +341,7 @@ class DatabaseHelper {
     await db.delete('ledger_entries');
     await db.delete('products');
     await db.delete('invoices');
+    await db.delete('company');
 
     // Import ledger entries
     if (backupData['data']['ledger_entries'] != null) {
@@ -313,6 +369,16 @@ class DatabaseHelper {
       );
       for (var invoice in invoices) {
         await db.insert('invoices', invoice);
+      }
+    }
+
+    // Import companies
+    if (backupData['data']['companies'] != null) {
+      List<Map<String, dynamic>> companies = List<Map<String, dynamic>>.from(
+        backupData['data']['companies'],
+      );
+      for (var company in companies) {
+        await db.insert('company', company);
       }
     }
   }

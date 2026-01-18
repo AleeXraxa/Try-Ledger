@@ -207,17 +207,22 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
     await DatabaseHelper().insertInvoice(invoice);
     // Reload invoices in controller
     controller.loadInvoices();
-    // Add to ledger as credit entry
+    // Add to ledger as individual credit entries for each product
     final LedgerController ledgerController = Get.find<LedgerController>();
-    LedgerEntry entry = LedgerEntry(
-      id: DateTime.now().millisecondsSinceEpoch,
-      description: 'Purchase Invoice - ${invoice.reference}',
-      debit: 0,
-      credit: total,
-      date: invoice.date,
-      companyId: selectedCompanyId,
-    );
-    await ledgerController.addLedgerEntry(entry);
+    for (var item in selectedItems) {
+      LedgerEntry entry = LedgerEntry(
+        id: DateTime.now().millisecondsSinceEpoch + selectedItems.indexOf(item),
+        description: 'Purchase - ${item['name']}',
+        debit: 0,
+        credit: item['value'] as double,
+        date: invoice.date,
+        companyId: selectedCompanyId,
+        referenceNo: invoice.reference,
+        qty: item['qty'] as int,
+        rate: item['price'] as double,
+      );
+      await ledgerController.addLedgerEntry(entry);
+    }
     // Show success message
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text('Purchase invoice saved successfully!')),

@@ -40,7 +40,10 @@ class LedgerView extends StatelessWidget {
       }
       rows.add({
         'Date': openingDate,
+        'Reference No': '',
         'Description': 'Opening Balance',
+        'Qty': '',
+        'Rate': '',
         'Debit': '',
         'Credit': '',
         'Balance': formatCurrency(openingBalance),
@@ -51,7 +54,10 @@ class LedgerView extends StatelessWidget {
       runningBalance += entry.debit - entry.credit;
       rows.add({
         'Date': formatDate(entry.date),
+        'Reference No': entry.referenceNo ?? '',
         'Description': entry.description,
+        'Qty': entry.qty != null ? entry.qty.toString() : '',
+        'Rate': entry.rate != null ? formatCurrency(entry.rate!) : '',
         'Debit': entry.debit > 0 ? formatCurrency(entry.debit) : '',
         'Credit': entry.credit > 0 ? formatCurrency(entry.credit) : '',
         'Balance': formatCurrency(runningBalance),
@@ -524,7 +530,10 @@ class LedgerView extends StatelessWidget {
                         subtitle: null,
                         columns: [
                           'Date',
+                          'Reference No',
                           'Description',
+                          'Qty',
+                          'Rate',
                           'Debit',
                           'Credit',
                           'Balance',
@@ -532,6 +541,9 @@ class LedgerView extends StatelessWidget {
                         columnTypes: [
                           'text',
                           'text',
+                          'text',
+                          'number',
+                          'currency',
                           'currency',
                           'currency',
                           'currency',
