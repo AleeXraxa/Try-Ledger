@@ -5,6 +5,7 @@ class Company {
   final String address;
   final String phone;
   final String email;
+  final bool isActive;
 
   Company({
     required this.id,
@@ -13,6 +14,7 @@ class Company {
     required this.address,
     required this.phone,
     required this.email,
+    this.isActive = true,
   });
 
   factory Company.fromJson(Map<String, dynamic> json) {
@@ -23,6 +25,7 @@ class Company {
       address: json['address'],
       phone: json['phone'],
       email: json['email'],
+      isActive: (json['isActive'] as int?) == 1,
     );
   }
 
@@ -34,6 +37,7 @@ class Company {
       'address': address,
       'phone': phone,
       'email': email,
+      'isActive': isActive ? 1 : 0,
     };
   }
 }

@@ -26,7 +26,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'TryLedger.db');
     return await openDatabase(
       path,
-      version: 7,
+      version: 8,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -126,6 +126,7 @@ class DatabaseHelper {
       // Add companyId column to invoices table
       await db.execute('ALTER TABLE invoices ADD COLUMN companyId INTEGER');
     }
+    // isActive column already exists in company table
   }
 
   // Ledger Entry methods

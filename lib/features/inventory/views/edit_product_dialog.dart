@@ -10,6 +10,8 @@ import '../controllers/inventory_controller.dart';
 
 import '../models/product_model.dart';
 
+import '../../company/controllers/company_controller.dart';
+
 class EditProductDialog extends StatefulWidget {
   final Product product;
 
@@ -21,12 +23,13 @@ class EditProductDialog extends StatefulWidget {
 
 class _EditProductDialogState extends State<EditProductDialog> {
   final InventoryController controller = Get.find<InventoryController>();
+  final CompanyController companyController = Get.find<CompanyController>();
 
   final TextEditingController _nameController = TextEditingController();
 
   final TextEditingController _priceController = TextEditingController();
 
-  final TextEditingController _categoryController = TextEditingController();
+  int? selectedCompanyId;
 
   String? nameError;
 
@@ -40,7 +43,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
     _priceController.text = widget.product.price.toString();
 
-    _categoryController.text = widget.product.category ?? '';
+    selectedCompanyId = widget.product.companyId;
   }
 
   @override
@@ -48,8 +51,6 @@ class _EditProductDialogState extends State<EditProductDialog> {
     _nameController.dispose();
 
     _priceController.dispose();
-
-    _categoryController.dispose();
 
     super.dispose();
   }
@@ -88,9 +89,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
       price: price!,
 
-      category: _categoryController.text.isEmpty
-          ? null
-          : _categoryController.text,
+      companyId: selectedCompanyId,
     );
 
     controller.updateProduct(product);
@@ -223,15 +222,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
             SizedBox(height: 16),
 
-            _buildFormField(
-              'Category',
-
-              Icons.category,
-
-              _categoryController,
-
-              'Enter category',
-            ),
+            _buildCompanyDropdown(),
 
             SizedBox(height: 24),
 
@@ -320,6 +311,60 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
           style: AppStyles.bodyStyle,
         ),
+      ],
+    );
+  }
+
+  Widget _buildCompanyDropdown() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'Company',
+          style: AppStyles.bodyStyle.copyWith(
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        SizedBox(height: 8),
+        Obx(() {
+          return DropdownButtonFormField<int?>(
+            value: selectedCompanyId,
+            hint: Text('Select Company'),
+            items: companyController.companies.map((company) {
+              return DropdownMenuItem<int?>(
+                value: company.id,
+                child: Text(company.name),
+              );
+            }).toList(),
+            onChanged: (value) {
+              setState(() {
+                selectedCompanyId = value;
+              });
+            },
+            decoration: InputDecoration(
+              prefixIcon: Icon(Icons.business, color: AppColors.primary),
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppColors.neutral.withOpacity(0.2),
+                ),
+              ),
+              enabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppColors.neutral.withOpacity(0.2),
+                ),
+              ),
+              focusedBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(color: AppColors.primary, width: 2),
+              ),
+              filled: true,
+              fillColor: AppColors.background.withOpacity(0.5),
+            ),
+          );
+        }),
       ],
     );
   }

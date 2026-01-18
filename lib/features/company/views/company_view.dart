@@ -95,59 +95,186 @@ class CompanyView extends StatelessWidget {
               if (controller.companies.isEmpty) {
                 return _buildEmptyState(context);
               }
-              return SaaSTable(
-                title: '',
-                subtitle: null,
-                columns: ['Name', 'Type', 'Phone'],
-                columnTypes: ['text', 'text', 'text'],
-                rows: controller.companies.map((company) {
-                  return {
-                    'Name': company.name,
-                    'Type': company.type,
-                    'Phone': company.phone,
-                  };
-                }).toList(),
-                onAddPressed: () {
-                  // Add company
-                },
-                onFilterPressed: () {
-                  // Filter
-                },
-                onExportPressed: () {
-                  // Export
-                },
-                onRowTap: (index) {
-                  if (index >= 0 && index < controller.companies.length) {
-                    _showCompanyDetailsDialog(
-                      context,
-                      controller.companies[index],
-                    );
-                  }
-                },
-                onActionPressed: (index, action) {
-                  if (action == 'edit') {
-                    if (index >= 0 && index < controller.companies.length) {
-                      _showAddCompanyDialog(
-                        context,
-                        controller.companies[index],
-                      );
-                    }
-                  } else if (action == 'delete') {
-                    if (index >= 0 && index < controller.companies.length) {
-                      _showDeleteConfirmation(
-                        context,
-                        controller.companies[index].id,
-                      );
-                    }
-                  }
-                },
-                isLoading: false,
-              );
+              return _buildCompaniesTable();
             }),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildCompaniesTable() {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        return Container(
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.neutral.withOpacity(0.1),
+                blurRadius: 10,
+                offset: Offset(0, 4),
+              ),
+            ],
+            border: Border.all(color: AppColors.primary.withOpacity(0.1)),
+          ),
+          child: SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: ConstrainedBox(
+              constraints: BoxConstraints(minWidth: constraints.maxWidth),
+              child: DataTable(
+                columnSpacing: 20,
+                horizontalMargin: 16,
+                headingRowHeight: 56,
+                dataRowHeight: 52,
+                headingRowColor: MaterialStateProperty.all(
+                  AppColors.primary.withOpacity(0.05),
+                ),
+                columns: [
+                  DataColumn(
+                    label: Text(
+                      'S.No',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Name',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Type',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Phone',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Status',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
+                      'Actions',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                ],
+                rows: controller.companies.asMap().entries.map((entry) {
+                  int index = entry.key;
+                  var company = entry.value;
+                  return DataRow(
+                    cells: [
+                      DataCell(
+                        Text(
+                          (index + 1).toString(),
+                          style: AppStyles.bodyStyle,
+                        ),
+                      ),
+                      DataCell(Text(company.name, style: AppStyles.bodyStyle)),
+                      DataCell(Text(company.type, style: AppStyles.bodyStyle)),
+                      DataCell(Text(company.phone, style: AppStyles.bodyStyle)),
+                      DataCell(
+                        Transform.scale(
+                          scale: 0.8,
+                          child: Switch(
+                            value: company.isActive,
+                            onChanged: (value) {
+                              _toggleCompanyStatus(company, value);
+                            },
+                            activeColor: AppColors.primary,
+                            materialTapTargetSize:
+                                MaterialTapTargetSize.shrinkWrap,
+                          ),
+                        ),
+                      ),
+                      DataCell(
+                        Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Container(
+                              margin: EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: AppColors.primary,
+                                ),
+                                onPressed: () =>
+                                    _showAddCompanyDialog(context, company),
+                                tooltip: 'Edit',
+                                iconSize: 20,
+                                padding: EdgeInsets.all(8),
+                              ),
+                            ),
+                            Container(
+                              decoration: BoxDecoration(
+                                color: Colors.red.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.delete_outlined,
+                                  color: Colors.red,
+                                ),
+                                onPressed: () => _showDeleteConfirmation(
+                                  context,
+                                  company.id,
+                                ),
+                                tooltip: 'Delete',
+                                iconSize: 20,
+                                padding: EdgeInsets.all(8),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ],
+                  );
+                }).toList(),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _toggleCompanyStatus(Company company, bool isActive) {
+    final updatedCompany = Company(
+      id: company.id,
+      name: company.name,
+      type: company.type,
+      address: company.address,
+      phone: company.phone,
+      email: company.email,
+      isActive: isActive,
+    );
+    controller.updateCompany(updatedCompany);
   }
 
   Widget _buildPremiumButton(
