@@ -69,6 +69,10 @@ class LedgerController extends GetxController {
   Future<void> addLedgerEntry(LedgerEntry entry) async {
     await _service.addLedgerEntry(entry);
     ledgerEntries.add(entry);
+    // Re-sort entries by date
+    ledgerEntries.sort((a, b) => a.date.compareTo(b.date));
+    // Reapply filters to update filteredEntries
+    applyFilters();
   }
 
   Future<void> updateLedgerEntry(LedgerEntry entry) async {
@@ -76,14 +80,18 @@ class LedgerController extends GetxController {
     int index = ledgerEntries.indexWhere((e) => e.id == entry.id);
     if (index != -1) {
       ledgerEntries[index] = entry;
+      // Re-sort entries by date in case date was changed
+      ledgerEntries.sort((a, b) => a.date.compareTo(b.date));
+      // Reapply filters to update filteredEntries
+      applyFilters();
     }
   }
 
   Future<void> deleteLedgerEntry(int id) async {
     await _service.deleteLedgerEntry(id);
     ledgerEntries.removeWhere((e) => e.id == id);
-    // Also remove from filtered entries if it exists there
-    filteredEntries.removeWhere((e) => e.id == id);
+    // Reapply filters to update filteredEntries
+    applyFilters();
   }
 
   void applyDateFilter() {
