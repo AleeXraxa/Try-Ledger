@@ -13,6 +13,20 @@ class LedgerController extends GetxController {
   var isFiltered = false.obs;
   var selectedCompanyId = Rxn<int>();
 
+  // Summary calculations
+  double get openingBalance => 0.0; // For now, assuming 0
+  double get totalDebit => _calculateTotalDebit();
+  double get totalCredit => _calculateTotalCredit();
+  double get closingBalance => openingBalance + totalDebit - totalCredit;
+
+  double _calculateTotalDebit() {
+    return filteredEntries.fold(0.0, (sum, entry) => sum + entry.debit);
+  }
+
+  double _calculateTotalCredit() {
+    return filteredEntries.fold(0.0, (sum, entry) => sum + entry.credit);
+  }
+
   @override
   void onInit() {
     super.onInit();
