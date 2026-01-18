@@ -16,8 +16,8 @@ class MainLayoutScreen extends StatelessWidget {
     DashboardView(),
     CompanyView(),
     LedgerView(),
-    DrLedgerView(),
     InventoryView(),
+    DrLedgerView(),
     BackupView(),
   ];
 

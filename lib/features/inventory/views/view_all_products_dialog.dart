@@ -171,17 +171,17 @@ class ViewAllProductsDialog extends StatelessWidget {
                       ),
                       DataCell(Text(product.name, style: AppStyles.bodyStyle)),
                       DataCell(
-                        Obx(() {
-                          String companyName = product.companyId != null
+                        Text(
+                          product.companyId != null
                               ? (companyController.companies
                                         .firstWhereOrNull(
                                           (c) => c.id == product.companyId,
                                         )
                                         ?.name ??
                                     'Unknown')
-                              : 'N/A';
-                          return Text(companyName, style: AppStyles.bodyStyle);
-                        }),
+                              : 'N/A',
+                          style: AppStyles.bodyStyle,
+                        ),
                       ),
                       DataCell(
                         Text(
@@ -270,11 +270,51 @@ class ViewAllProductsDialog extends StatelessWidget {
             onPressed: () async {
               await controller.deleteProduct(id);
               Navigator.of(context).pop();
+              _showSuccessDialog(
+                context,
+                'Product has been deleted successfully.',
+              );
             },
             child: Text(
               'Delete',
               style: AppStyles.bodyStyle.copyWith(
                 color: Colors.redAccent,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Success!',
+              style: AppStyles.headingStyle.copyWith(
+                color: Colors.green.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Text(message, style: AppStyles.bodyStyle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: AppStyles.bodyStyle.copyWith(
+                color: Colors.green,
                 fontWeight: FontWeight.w600,
               ),
             ),

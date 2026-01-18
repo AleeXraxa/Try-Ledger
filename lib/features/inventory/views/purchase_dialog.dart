@@ -215,6 +215,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
       debit: 0,
       credit: total,
       date: invoice.date,
+      companyId: selectedCompanyId,
     );
     await ledgerController.addLedgerEntry(entry);
     // Show success message
@@ -597,12 +598,15 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
           return DropdownButtonFormField<int?>(
             value: selectedCompanyId,
             hint: Text('Select Company'),
-            items: companyController.companies.map((company) {
-              return DropdownMenuItem<int?>(
-                value: company.id,
-                child: Text(company.name),
-              );
-            }).toList(),
+            items: companyController.companies
+                .where((company) => company.isActive)
+                .map((company) {
+                  return DropdownMenuItem<int?>(
+                    value: company.id,
+                    child: Text(company.name),
+                  );
+                })
+                .toList(),
             onChanged: (value) {
               setState(() {
                 selectedCompanyId = value;

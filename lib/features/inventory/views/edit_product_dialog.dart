@@ -94,6 +94,7 @@ class _EditProductDialogState extends State<EditProductDialog> {
 
     controller.updateProduct(product);
     Navigator.of(context).pop();
+    _showSuccessDialog(context, 'Product has been updated successfully.');
   }
 
   @override
@@ -331,12 +332,15 @@ class _EditProductDialogState extends State<EditProductDialog> {
           return DropdownButtonFormField<int?>(
             value: selectedCompanyId,
             hint: Text('Select Company'),
-            items: companyController.companies.map((company) {
-              return DropdownMenuItem<int?>(
-                value: company.id,
-                child: Text(company.name),
-              );
-            }).toList(),
+            items: companyController.companies
+                .where((company) => company.isActive)
+                .map((company) {
+                  return DropdownMenuItem<int?>(
+                    value: company.id,
+                    child: Text(company.name),
+                  );
+                })
+                .toList(),
             onChanged: (value) {
               setState(() {
                 selectedCompanyId = value;
@@ -464,6 +468,42 @@ class _EditProductDialogState extends State<EditProductDialog> {
           ),
         );
       },
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Success!',
+              style: AppStyles.headingStyle.copyWith(
+                color: Colors.green.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Text(message, style: AppStyles.bodyStyle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: AppStyles.bodyStyle.copyWith(
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

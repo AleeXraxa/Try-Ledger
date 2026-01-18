@@ -23,6 +23,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
   int? selectedCompanyId;
   String? nameError;
   String? priceError;
+  String? companyError;
 
   @override
   void dispose() {
@@ -36,6 +37,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
     // Validation
     String? nError;
     String? pError;
+    String? cError;
     if (_nameController.text.trim().isEmpty) {
       nError = 'Product name is required';
     }
@@ -43,11 +45,17 @@ class _AddProductDialogState extends State<AddProductDialog> {
     if (price == null || price <= 0) {
       pError = 'Please enter a valid price greater than 0';
     }
-    if (nError != null || pError != null) {
-      print('Validation failed: nameError=$nError, priceError=$pError');
+    if (selectedCompanyId == null) {
+      cError = 'Please select a company';
+    }
+    if (nError != null || pError != null || cError != null) {
+      print(
+        'Validation failed: nameError=$nError, priceError=$pError, companyError=$cError',
+      );
       setState(() {
         nameError = nError;
         priceError = pError;
+        companyError = cError;
       });
       return;
     }
@@ -64,6 +72,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
         .then((_) {
           print('Product added successfully');
           Navigator.of(context).pop();
+          _showSuccessDialog(context, 'Product has been added successfully.');
         })
         .catchError((e) {
           print('Error adding product: $e');
@@ -152,7 +161,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
               prefixText: 'PKR ',
             ),
             SizedBox(height: 16),
-            _buildCompanyDropdown(),
+            _buildCompanyDropdown(errorText: companyError),
             SizedBox(height: 24),
             _buildPremiumButton(
               'Add Product',
@@ -215,12 +224,12 @@ class _AddProductDialogState extends State<AddProductDialog> {
     );
   }
 
-  Widget _buildCompanyDropdown() {
+  Widget _buildCompanyDropdown({String? errorText}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'Company',
+          'Company *',
           style: AppStyles.bodyStyle.copyWith(
             fontWeight: FontWeight.w600,
             color: AppColors.textPrimary,
@@ -231,12 +240,15 @@ class _AddProductDialogState extends State<AddProductDialog> {
           return DropdownButtonFormField<int?>(
             value: selectedCompanyId,
             hint: Text('Select Company'),
-            items: companyController.companies.map((company) {
-              return DropdownMenuItem<int?>(
-                value: company.id,
-                child: Text(company.name),
-              );
-            }).toList(),
+            items: companyController.companies
+                .where((company) => company.isActive)
+                .map((company) {
+                  return DropdownMenuItem<int?>(
+                    value: company.id,
+                    child: Text(company.name),
+                  );
+                })
+                .toList(),
             onChanged: (value) {
               setState(() {
                 selectedCompanyId = value;
@@ -262,6 +274,7 @@ class _AddProductDialogState extends State<AddProductDialog> {
               ),
               filled: true,
               fillColor: AppColors.background.withOpacity(0.5),
+              errorText: errorText,
             ),
           );
         }),
@@ -335,6 +348,42 @@ class _AddProductDialogState extends State<AddProductDialog> {
           ),
         );
       },
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Success!',
+              style: AppStyles.headingStyle.copyWith(
+                color: Colors.green.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Text(message, style: AppStyles.bodyStyle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: AppStyles.bodyStyle.copyWith(
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

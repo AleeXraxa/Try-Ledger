@@ -337,14 +337,40 @@ class LedgerView extends StatelessWidget {
                         () => controller.selectCompany(null),
                       ),
                       SizedBox(width: 12),
-                      _buildPremiumButton(
-                        'Add Entry',
-                        Icons.add,
-                        AppColors.primary,
-                        () {
-                          _showAddEntryDialog(context);
-                        },
-                      ),
+                      if (selectedCompany.isActive)
+                        _buildPremiumButton(
+                          'Add Entry',
+                          Icons.add,
+                          AppColors.primary,
+                          () {
+                            _showAddEntryDialog(context);
+                          },
+                        )
+                      else
+                        Container(
+                          padding: EdgeInsets.symmetric(
+                            horizontal: 16,
+                            vertical: 10,
+                          ),
+                          decoration: BoxDecoration(
+                            color: Colors.grey.withOpacity(0.3),
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Row(
+                            children: [
+                              Icon(Icons.add, color: Colors.grey, size: 16),
+                              SizedBox(width: 8),
+                              Text(
+                                'Add Entry (Company Inactive)',
+                                style: AppStyles.bodyStyle.copyWith(
+                                  color: Colors.grey,
+                                  fontWeight: FontWeight.w600,
+                                  fontSize: 14,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
                       SizedBox(width: 12),
                       _buildPremiumButton(
                         'Generate Report',
@@ -1104,12 +1130,6 @@ class LedgerView extends StatelessWidget {
                     context,
                     selectedType,
                     (type) => selectedType = type,
-                  ),
-                  SizedBox(height: 16),
-                  _buildCompanyDropdown(
-                    context,
-                    selectedCompanyId,
-                    (companyId) => selectedCompanyId = companyId,
                   ),
                   SizedBox(height: 16),
                   _buildFormField(

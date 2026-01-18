@@ -210,47 +210,22 @@ class CompanyView extends StatelessWidget {
                         ),
                       ),
                       DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.edit_outlined,
-                                  color: AppColors.primary,
-                                ),
-                                onPressed: () =>
-                                    _showAddCompanyDialog(context, company),
-                                tooltip: 'Edit',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
+                        Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withOpacity(0.1),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: IconButton(
+                            icon: Icon(
+                              Icons.edit_outlined,
+                              color: AppColors.primary,
                             ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.delete_outlined,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () => _showDeleteConfirmation(
-                                  context,
-                                  company.id,
-                                ),
-                                tooltip: 'Delete',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
-                            ),
-                          ],
+                            onPressed: () =>
+                                _showAddCompanyDialog(context, company),
+                            tooltip: 'Edit',
+                            iconSize: 20,
+                            padding: EdgeInsets.all(8),
+                          ),
                         ),
                       ),
                     ],
@@ -683,11 +658,33 @@ class CompanyView extends StatelessWidget {
                         email: emailController.text,
                       );
                       if (company == null) {
+                        // Check if company with same name exists
+                        bool nameExists = controller.companies.any(
+                          (c) =>
+                              c.name.toLowerCase() ==
+                              nameController.text.trim().toLowerCase(),
+                        );
+                        if (nameExists) {
+                          _showErrorDialog(
+                            context,
+                            'A company with this name already exists.',
+                          );
+                          return;
+                        }
                         await controller.addCompany(newCompany);
+                        Navigator.of(context).pop();
+                        _showSuccessDialog(
+                          context,
+                          'Company has been added successfully.',
+                        );
                       } else {
                         await controller.updateCompany(newCompany);
+                        Navigator.of(context).pop();
+                        _showSuccessDialog(
+                          context,
+                          'Company has been updated successfully.',
+                        );
                       }
-                      Navigator.of(context).pop();
                     },
                   ),
                 ],
@@ -837,6 +834,78 @@ class CompanyView extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showSuccessDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Success!',
+              style: AppStyles.headingStyle.copyWith(
+                color: Colors.green.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Text(message, style: AppStyles.bodyStyle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: AppStyles.bodyStyle.copyWith(
+                color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.error, color: Colors.red, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Error!',
+              style: AppStyles.headingStyle.copyWith(
+                color: Colors.red.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Text(message, style: AppStyles.bodyStyle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: AppStyles.bodyStyle.copyWith(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
