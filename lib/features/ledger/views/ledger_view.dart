@@ -1361,30 +1361,32 @@ class LedgerView extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: _buildPremiumButton(
-                      'Edit',
-                      Icons.edit,
-                      AppColors.accent,
-                      () {
-                        Navigator.of(context).pop();
-                        _showAddEntryDialog(context, entry);
-                      },
+                  if (entry.referenceNo == null) ...[
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildPremiumButton(
+                        'Edit',
+                        Icons.edit,
+                        AppColors.accent,
+                        () {
+                          Navigator.of(context).pop();
+                          _showAddEntryDialog(context, entry);
+                        },
+                      ),
                     ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: _buildPremiumButton(
-                      'Delete',
-                      Icons.delete,
-                      Colors.redAccent,
-                      () {
-                        Navigator.of(context).pop();
-                        _showDeleteConfirmation(context, entry.id);
-                      },
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildPremiumButton(
+                        'Delete',
+                        Icons.delete,
+                        Colors.redAccent,
+                        () {
+                          Navigator.of(context).pop();
+                          _showDeleteConfirmation(context, entry.id);
+                        },
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ],
