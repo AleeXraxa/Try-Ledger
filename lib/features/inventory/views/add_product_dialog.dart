@@ -2,11 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
-import '../../../constants/app_fonts.dart';
 import '../controllers/inventory_controller.dart';
 import '../models/product_model.dart';
 import '../../company/controllers/company_controller.dart';
-import '../../company/models/company_model.dart';
 
 class AddProductDialog extends StatefulWidget {
   @override

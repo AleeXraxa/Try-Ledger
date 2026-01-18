@@ -583,6 +583,7 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
   }
 
   Widget _buildCompanyDropdown() {
+    bool isDisabled = selectedItems.isNotEmpty;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -607,13 +608,15 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
                   );
                 })
                 .toList(),
-            onChanged: (value) {
-              setState(() {
-                selectedCompanyId = value;
-                selectedProduct = null;
-                _dpController.clear();
-              });
-            },
+            onChanged: isDisabled
+                ? null
+                : (value) {
+                    setState(() {
+                      selectedCompanyId = value;
+                      selectedProduct = null;
+                      _dpController.clear();
+                    });
+                  },
             decoration: InputDecoration(
               prefixIcon: Icon(Icons.business, color: AppColors.primary),
               border: OutlineInputBorder(
@@ -632,8 +635,18 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
                 borderRadius: BorderRadius.circular(12),
                 borderSide: BorderSide(color: AppColors.primary, width: 2),
               ),
+              disabledBorder: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide(
+                  color: AppColors.neutral.withOpacity(0.3),
+                ),
+              ),
               filled: true,
-              fillColor: AppColors.background.withOpacity(0.5),
+              fillColor: isDisabled
+                  ? AppColors.neutral.withOpacity(0.1)
+                  : AppColors.background.withOpacity(0.5),
+              labelText: isDisabled ? 'Company locked (items added)' : null,
+              labelStyle: TextStyle(color: AppColors.neutral),
             ),
           );
         }),

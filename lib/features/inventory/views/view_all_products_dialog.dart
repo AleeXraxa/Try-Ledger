@@ -5,7 +5,6 @@ import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
 import '../controllers/inventory_controller.dart';
 import '../../company/controllers/company_controller.dart';
-import 'product_details_dialog.dart';
 import 'edit_product_dialog.dart';
 
 class ViewAllProductsDialog extends StatelessWidget {
