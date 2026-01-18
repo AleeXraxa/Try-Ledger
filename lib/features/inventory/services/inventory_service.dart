@@ -26,6 +26,10 @@ class InventoryService {
     return await _dbHelper.getInvoices();
   }
 
+  Future<Invoice?> getInvoice(int id) async {
+    return await _dbHelper.getInvoice(id);
+  }
+
   Future<void> addInvoice(Invoice invoice) async {
     await _dbHelper.insertInvoice(invoice);
   }

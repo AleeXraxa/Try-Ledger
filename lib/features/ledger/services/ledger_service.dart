@@ -19,4 +19,8 @@ class LedgerService {
   Future<void> deleteLedgerEntry(int id) async {
     await _dbHelper.deleteLedgerEntry(id);
   }
+
+  Future<void> deleteLedgerEntriesByReference(String referenceNo) async {
+    await _dbHelper.deleteLedgerEntriesByReference(referenceNo);
+  }
 }

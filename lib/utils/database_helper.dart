@@ -211,6 +211,15 @@ class DatabaseHelper {
     await db.delete('ledger_entries', where: 'id = ?', whereArgs: [id]);
   }
 
+  Future<void> deleteLedgerEntriesByReference(String referenceNo) async {
+    Database db = await database;
+    await db.delete(
+      'ledger_entries',
+      where: 'reference_no = ?',
+      whereArgs: [referenceNo],
+    );
+  }
+
   // Product methods
   Future<List<Product>> getProducts() async {
     Database db = await database;
@@ -256,6 +265,19 @@ class DatabaseHelper {
     return List.generate(maps.length, (i) {
       return Invoice.fromJson(maps[i]);
     });
+  }
+
+  Future<Invoice?> getInvoice(int id) async {
+    Database db = await database;
+    List<Map<String, dynamic>> maps = await db.query(
+      'invoices',
+      where: 'id = ?',
+      whereArgs: [id],
+    );
+    if (maps.isNotEmpty) {
+      return Invoice.fromJson(maps.first);
+    }
+    return null;
   }
 
   Future<void> insertInvoice(Invoice invoice) async {

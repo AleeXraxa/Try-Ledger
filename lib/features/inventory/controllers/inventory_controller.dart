@@ -2,6 +2,8 @@ import 'package:get/get.dart';
 import '../models/product_model.dart';
 import '../models/invoice_model.dart';
 import '../services/inventory_service.dart';
+import '../../ledger/services/ledger_service.dart';
+import '../../ledger/controllers/ledger_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';
@@ -55,6 +57,16 @@ class InventoryController extends GetxController {
   }
 
   Future<void> deleteInvoice(int id) async {
+    // Get the invoice to find its reference
+    Invoice? invoice = await _service.getInvoice(id);
+    if (invoice != null) {
+      // Delete associated ledger entries
+      LedgerService ledgerService = LedgerService();
+      await ledgerService.deleteLedgerEntriesByReference(invoice.reference);
+      // Reload ledger entries
+      final ledgerController = Get.find<LedgerController>();
+      ledgerController.loadLedger();
+    }
     await _service.deleteInvoice(id);
     loadInvoices();
   }
