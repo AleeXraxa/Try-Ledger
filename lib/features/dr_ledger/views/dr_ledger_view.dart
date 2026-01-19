@@ -267,6 +267,10 @@ class DrLedgerView extends StatelessWidget {
           SizedBox(height: 24),
           Expanded(
             child: Obx(() {
+              if (controller.selectedDoctorId.value == null) {
+                return _buildDoctorSelector();
+              }
+
               double openingBalance = 0.0;
               if (controller.isFiltered.value &&
                   controller.fromDate.value != null) {
@@ -520,6 +524,95 @@ class DrLedgerView extends StatelessWidget {
         },
       );
     });
+  }
+
+  Widget _buildDoctorDropdown() {
+    return Obx(() {
+      return DropdownButtonFormField<int?>(
+        value: controller.selectedDoctorId.value,
+        hint: Text('Select Doctor to View Ledger'),
+        isExpanded: true,
+        items: doctorController.doctors.where((doctor) => doctor.isActive).map((
+          doctor,
+        ) {
+          return DropdownMenuItem<int?>(
+            value: doctor.id,
+            child: Text(doctor.name),
+          );
+        }).toList(),
+        onChanged: (value) {
+          controller.selectedDoctorId.value = value;
+          controller.applyDateFilter(); // Apply filter to show the ledger
+        },
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.person, color: AppColors.primary),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.neutral.withOpacity(0.2)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.neutral.withOpacity(0.2)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
+          ),
+          filled: true,
+          fillColor: AppColors.background.withOpacity(0.5),
+        ),
+      );
+    });
+  }
+
+  Widget _buildDoctorSelector() {
+    return Center(
+      child: Container(
+        padding: EdgeInsets.all(40),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: [
+              AppColors.background.withOpacity(0.8),
+              AppColors.background.withOpacity(0.6),
+            ],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(
+            color: AppColors.primary.withOpacity(0.1),
+            width: 1,
+          ),
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              Icons.person_search,
+              size: 64,
+              color: AppColors.primary.withOpacity(0.6),
+            ),
+            SizedBox(height: 24),
+            Text(
+              'Select Doctor to View Ledger',
+              style: AppStyles.headingStyle.copyWith(
+                fontSize: 24,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 16),
+            Text(
+              'Choose a doctor from the list below to view their ledger entries',
+              style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
+              textAlign: TextAlign.center,
+            ),
+            SizedBox(height: 32),
+            _buildDoctorDropdown(),
+          ],
+        ),
+      ),
+    );
   }
 
   void _showAddEntryDialog(BuildContext context, [LedgerEntry? entry]) {

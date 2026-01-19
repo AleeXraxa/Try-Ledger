@@ -9,6 +9,7 @@ class DrLedgerController extends GetxController {
   var filteredEntries = <LedgerEntry>[].obs;
   var fromDate = Rxn<DateTime>();
   var toDate = Rxn<DateTime>();
+  var selectedDoctorId = Rxn<int>();
   var isFiltered = false.obs;
 
   @override
@@ -44,14 +45,11 @@ class DrLedgerController extends GetxController {
   }
 
   void applyDateFilter() {
-    if (fromDate.value == null && toDate.value == null) {
-      // No filter applied, show all entries
-      filteredEntries.value = drLedgerEntries;
-      isFiltered.value = false;
-      return;
-    }
-
     filteredEntries.value = drLedgerEntries.where((entry) {
+      bool matchesDoctor =
+          selectedDoctorId.value == null ||
+          entry.companyId == selectedDoctorId.value;
+
       bool matchesFromDate =
           fromDate.value == null ||
           entry.date.isAtSameMomentAs(fromDate.value!) ||
@@ -64,15 +62,19 @@ class DrLedgerController extends GetxController {
             toDate.value!.add(Duration(days: 1)),
           ); // Include the end date
 
-      return matchesFromDate && matchesToDate;
+      return matchesDoctor && matchesFromDate && matchesToDate;
     }).toList();
 
-    isFiltered.value = true;
+    isFiltered.value =
+        selectedDoctorId.value != null ||
+        fromDate.value != null ||
+        toDate.value != null;
   }
 
   void clearFilter() {
     fromDate.value = null;
     toDate.value = null;
+    selectedDoctorId.value = null;
     filteredEntries.value = drLedgerEntries;
     isFiltered.value = false;
   }
