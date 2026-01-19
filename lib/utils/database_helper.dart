@@ -6,6 +6,7 @@ import '../features/ledger/models/ledger_entry_model.dart';
 import '../features/inventory/models/product_model.dart';
 import '../features/inventory/models/invoice_model.dart';
 import '../features/company/models/company_model.dart';
+import '../features/dr_ledger/models/doctor_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -26,7 +27,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'TryLedger.db');
     Database db = await openDatabase(
       path,
-      version: 9,
+      version: 10,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -141,6 +142,20 @@ class DatabaseHelper {
       );
       await db.execute('ALTER TABLE ledger_entries ADD COLUMN qty INTEGER');
       await db.execute('ALTER TABLE ledger_entries ADD COLUMN rate REAL');
+    }
+    if (oldVersion < 10) {
+      // Create doctors table
+      await db.execute('''
+        CREATE TABLE doctors (
+          id INTEGER PRIMARY KEY,
+          name TEXT NOT NULL,
+          specialization TEXT NOT NULL,
+          address TEXT NOT NULL,
+          phone TEXT NOT NULL,
+          email TEXT NOT NULL,
+          isActive INTEGER DEFAULT 1
+        )
+      ''');
     }
     // isActive column already exists in company table
   }
@@ -333,6 +348,37 @@ class DatabaseHelper {
     await db.delete('company', where: 'id = ?', whereArgs: [id]);
   }
 
+  // Doctor methods
+  Future<List<Doctor>> getDoctors() async {
+    Database db = await database;
+    List<Map<String, dynamic>> maps = await db.query('doctors');
+    return List.generate(maps.length, (i) {
+      return Doctor.fromJson(maps[i]);
+    });
+  }
+
+  Future<void> insertDoctor(Doctor doctor) async {
+    Database db = await database;
+    Map<String, dynamic> data = doctor.toJson();
+    data.remove('id');
+    await db.insert('doctors', data);
+  }
+
+  Future<void> updateDoctor(Doctor doctor) async {
+    Database db = await database;
+    await db.update(
+      'doctors',
+      doctor.toJson(),
+      where: 'id = ?',
+      whereArgs: [doctor.id],
+    );
+  }
+
+  Future<void> deleteDoctor(int id) async {
+    Database db = await database;
+    await db.delete('doctors', where: 'id = ?', whereArgs: [id]);
+  }
+
   // Backup method
   Future<Map<String, dynamic>> exportAllData() async {
     Database db = await database;
@@ -342,15 +388,17 @@ class DatabaseHelper {
     List<Map<String, dynamic>> products = await db.query('products');
     List<Map<String, dynamic>> invoices = await db.query('invoices');
     List<Map<String, dynamic>> companies = await db.query('company');
+    List<Map<String, dynamic>> doctors = await db.query('doctors');
 
     return {
-      'version': 3,
+      'version': 4,
       'exported_at': DateTime.now().toIso8601String(),
       'data': {
         'ledger_entries': ledgerEntries,
         'products': products,
         'invoices': invoices,
         'companies': companies,
+        'doctors': doctors,
       },
     };
   }
@@ -364,6 +412,7 @@ class DatabaseHelper {
     await db.delete('products');
     await db.delete('invoices');
     await db.delete('company');
+    await db.delete('doctors');
 
     // Import ledger entries
     if (backupData['data']['ledger_entries'] != null) {
@@ -401,6 +450,16 @@ class DatabaseHelper {
       );
       for (var company in companies) {
         await db.insert('company', company);
+      }
+    }
+
+    // Import doctors
+    if (backupData['data']['doctors'] != null) {
+      List<Map<String, dynamic>> doctors = List<Map<String, dynamic>>.from(
+        backupData['data']['doctors'],
+      );
+      for (var doctor in doctors) {
+        await db.insert('doctors', doctor);
       }
     }
   }

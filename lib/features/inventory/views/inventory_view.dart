@@ -7,6 +7,7 @@ import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
 import '../controllers/inventory_controller.dart';
 import '../models/invoice_model.dart';
+import '../../company/controllers/company_controller.dart';
 import 'add_product_dialog.dart';
 import 'purchase_dialog.dart';
 import 'invoice_details_dialog.dart';
@@ -266,6 +267,7 @@ class InventoryView extends StatelessWidget {
   }
 
   Widget _buildInvoicesTable() {
+    final companyController = Get.find<CompanyController>();
     if (controller.invoices.isEmpty) {
       return Center(
         child: Text('No invoices added yet.', style: AppStyles.bodyStyle),
@@ -317,6 +319,14 @@ class InventoryView extends StatelessWidget {
                   ),
                   DataColumn(
                     label: Text(
+                      'Company Name',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ),
+                  DataColumn(
+                    label: Text(
                       'Invoice Date',
                       style: AppStyles.bodyStyle.copyWith(
                         fontWeight: FontWeight.w600,
@@ -343,6 +353,10 @@ class InventoryView extends StatelessWidget {
                 rows: controller.invoices.asMap().entries.map((entry) {
                   int index = entry.key;
                   var invoice = entry.value;
+                  final company = companyController.companies.firstWhereOrNull(
+                    (c) => c.id == invoice.companyId,
+                  );
+                  final companyName = company?.name ?? 'N/A';
                   return DataRow(
                     cells: [
                       DataCell(
@@ -354,6 +368,7 @@ class InventoryView extends StatelessWidget {
                       DataCell(
                         Text(invoice.reference, style: AppStyles.bodyStyle),
                       ),
+                      DataCell(Text(companyName, style: AppStyles.bodyStyle)),
                       DataCell(
                         Text(
                           formatDate(invoice.date),

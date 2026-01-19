@@ -11,10 +11,15 @@ import '../../../widgets/saas_table.dart';
 import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
 import '../controllers/dr_ledger_controller.dart';
+import '../controllers/doctor_controller.dart';
 import '../../ledger/models/ledger_entry_model.dart';
+import 'add_doctor_dialog.dart';
+import 'add_dr_entry_dialog.dart';
+import 'view_all_doctors_dialog.dart';
 
 class DrLedgerView extends StatelessWidget {
   final DrLedgerController controller = Get.put(DrLedgerController());
+  final DoctorController doctorController = Get.put(DoctorController());
 
   List<Map<String, String>> _buildDrLedgerRows(
     List<LedgerEntry> entries,
@@ -119,11 +124,38 @@ class DrLedgerView extends StatelessWidget {
                     ),
                     Spacer(),
                     _buildPremiumButton(
-                      'Add Entry',
-                      Icons.add,
+                      'Add new Doctor',
+                      Icons.person_add,
                       AppColors.primary,
                       () {
-                        _showAddEntryDialog(context);
+                        showDialog(
+                          context: context,
+                          builder: (context) => AddDoctorDialog(),
+                        );
+                      },
+                    ),
+                    SizedBox(width: 12),
+                    _buildPremiumButton(
+                      'View All Doctors',
+                      Icons.view_list,
+                      AppColors.accent,
+                      () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => ViewAllDoctorsDialog(),
+                        );
+                      },
+                    ),
+                    SizedBox(width: 12),
+                    _buildPremiumButton(
+                      'Add Dr Entry',
+                      Icons.add,
+                      AppColors.accent,
+                      () {
+                        showDialog(
+                          context: context,
+                          builder: (context) => AddDrEntryDialog(),
+                        );
                       },
                     ),
                     SizedBox(width: 12),
