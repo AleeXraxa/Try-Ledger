@@ -494,6 +494,8 @@ class LedgerView extends StatelessWidget {
                               ),
                             ),
                             SizedBox(width: 16),
+                            Expanded(child: _buildCompanySelector()),
+                            SizedBox(width: 16),
                             _buildPremiumButton(
                               'Apply Filter',
                               Icons.filter_list,

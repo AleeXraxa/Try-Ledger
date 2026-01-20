@@ -77,7 +77,10 @@ class LedgerController extends GetxController {
       return matchesFromDate && matchesToDate;
     }).toList();
 
-    isFiltered.value = true;
+    isFiltered.value =
+        selectedCompanyId.value != null ||
+        fromDate.value != null ||
+        toDate.value != null;
   }
 
   Future<void> addLedgerEntry(LedgerEntry entry) async {
@@ -115,6 +118,7 @@ class LedgerController extends GetxController {
   void clearFilter() {
     fromDate.value = null;
     toDate.value = null;
+    selectedCompanyId.value = null;
     applyFilters();
   }
 }
