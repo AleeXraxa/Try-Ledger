@@ -391,7 +391,7 @@ class DatabaseHelper {
     List<Map<String, dynamic>> doctors = await db.query('doctors');
 
     return {
-      'version': 4,
+      'version': 10,
       'exported_at': DateTime.now().toIso8601String(),
       'data': {
         'ledger_entries': ledgerEntries,

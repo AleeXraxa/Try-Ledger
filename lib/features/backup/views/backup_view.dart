@@ -380,10 +380,7 @@ class BackupView extends StatelessWidget {
     }
 
     // Validate backup data structure
-    if (!backupData.containsKey('data') ||
-        !backupData['data'].containsKey('ledger_entries') ||
-        !backupData['data'].containsKey('products') ||
-        !backupData['data'].containsKey('invoices')) {
+    if (!backupData.containsKey('data')) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('Invalid backup file structure'),

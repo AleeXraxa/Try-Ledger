@@ -4,6 +4,7 @@ import '../models/invoice_model.dart';
 import '../services/inventory_service.dart';
 import '../../ledger/services/ledger_service.dart';
 import '../../ledger/controllers/ledger_controller.dart';
+import '../../company/controllers/company_controller.dart';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 import 'dart:io';
@@ -144,6 +145,11 @@ class InventoryController extends GetxController {
                             'Date: ${invoice.date.toLocal().toString().split(' ')[0]}',
                             style: pw.TextStyle(font: boldFont, fontSize: 12),
                           ),
+                          // Add company name below the date
+                          pw.Text(
+                            'Company: ${Get.find<CompanyController>().companies.firstWhereOrNull((c) => c.id == invoice.companyId)?.name ?? 'N/A'}',
+                            style: pw.TextStyle(font: boldFont, fontSize: 12),
+                          ),
                         ],
                       ),
                     ),
@@ -163,6 +169,7 @@ class InventoryController extends GetxController {
                     'Batch No',
                     'Expiry',
                     'Quantity',
+                    'Price',
                     'Total Value',
                   ],
                   headerStyle: pw.TextStyle(
@@ -186,14 +193,15 @@ class InventoryController extends GetxController {
                           })()
                         : '';
                     final quantity = item['qty'] ?? item['quantity'] ?? 0;
-                    final totalValue =
-                        item['value'] ?? ((item['price'] ?? 0.0) * quantity);
+                    final price = item['price'] ?? 0.0;
+                    final totalValue = item['value'] ?? (price * quantity);
                     return [
                       index.toString(),
                       name,
                       batch,
                       expiry,
                       quantity.toString(),
+                      'PKR ${price.toStringAsFixed(2)}',
                       'PKR ${totalValue.toStringAsFixed(2)}',
                     ];
                   }).toList(),

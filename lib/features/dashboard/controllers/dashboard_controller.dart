@@ -1,10 +1,13 @@
 import 'package:get/get.dart';
 import '../services/dashboard_service.dart';
+import '../models/dashboard_model.dart';
 import '../../ledger/models/ledger_entry_model.dart';
 import '../../inventory/models/product_model.dart';
 import '../../inventory/models/invoice_model.dart';
 import '../../ledger/controllers/ledger_controller.dart';
 import '../../inventory/controllers/inventory_controller.dart';
+import '../../dr_ledger/controllers/dr_ledger_controller.dart';
+import '../../dr_ledger/controllers/doctor_controller.dart';
 
 class DashboardController extends GetxController {
   final DashboardService _service = DashboardService();
@@ -24,8 +27,8 @@ class DashboardController extends GetxController {
   var totalCredit = 0.0.obs;
   var closingBalance = 0.0.obs;
 
-  // Recent transactions
-  var recentTransactions = <LedgerEntry>[].obs;
+  // Recent activities
+  var recentActivities = <ActivityItem>[].obs;
 
   // Low stock alerts
   var lowStockProducts = <Product>[].obs;
@@ -38,11 +41,15 @@ class DashboardController extends GetxController {
     super.onInit();
     Get.put(LedgerController());
     Get.put(InventoryController());
+    Get.put(DrLedgerController());
+    Get.put(DoctorController());
     final ledgerController = Get.find<LedgerController>();
     final inventoryController = Get.find<InventoryController>();
+    final drLedgerController = Get.find<DrLedgerController>();
     ever(ledgerController.ledgerEntries, (_) => loadData());
     ever(inventoryController.products, (_) => loadData());
     ever(inventoryController.invoices, (_) => loadData());
+    ever(drLedgerController.drLedgerEntries, (_) => loadData());
     loadData();
   }
 
@@ -91,10 +98,85 @@ class DashboardController extends GetxController {
     totalCredit.value = totalCred;
     closingBalance.value = closingBal;
 
-    // Recent transactions: last 5
-    recentTransactions.value = ledgerController.ledgerEntries.reversed
-        .take(5)
-        .toList();
+    // Recent activities: collect from multiple sources
+    List<ActivityItem> activities = [];
+
+    // Add Dr Ledger entries
+    final drLedgerController = Get.find<DrLedgerController>();
+    final doctorController = Get.find<DoctorController>();
+
+    for (var entry in drLedgerController.drLedgerEntries) {
+      String? doctorName;
+      if (entry.companyId != null) {
+        final doctor = doctorController.doctors.firstWhereOrNull(
+          (d) => d.id == entry.companyId,
+        );
+        doctorName = doctor?.name;
+      }
+
+      if (entry.debit > 0) {
+        activities.add(
+          ActivityItem(
+            id: entry.id,
+            description: entry.description,
+            amount: entry.debit,
+            date: entry.date,
+            activityType: ActivityType.drLedger,
+            transactionType: TransactionType.debit,
+            doctorName: doctorName,
+          ),
+        );
+      }
+
+      if (entry.credit > 0) {
+        activities.add(
+          ActivityItem(
+            id: entry.id,
+            description: entry.description,
+            amount: entry.credit,
+            date: entry.date,
+            activityType: ActivityType.drLedger,
+            transactionType: TransactionType.credit,
+            doctorName: doctorName,
+          ),
+        );
+      }
+    }
+
+    // Add Company Ledger entries
+    for (var entry in ledgerController.ledgerEntries) {
+      if (entry.debit > 0) {
+        activities.add(
+          ActivityItem(
+            id: entry.id,
+            description: entry.description,
+            amount: entry.debit,
+            date: entry.date,
+            activityType: ActivityType.companyLedger,
+            transactionType: TransactionType.debit,
+            referenceNo: entry.referenceNo,
+          ),
+        );
+      }
+
+      if (entry.credit > 0) {
+        activities.add(
+          ActivityItem(
+            id: entry.id,
+            description: entry.description,
+            amount: entry.credit,
+            date: entry.date,
+            activityType: ActivityType.companyLedger,
+            transactionType: TransactionType.credit,
+            referenceNo: entry.referenceNo,
+          ),
+        );
+      }
+    }
+
+    // Sort by date (most recent first) and take top 10
+    activities.sort((a, b) => b.date.compareTo(a.date));
+    recentActivities.value = activities.take(10).toList();
 
     // Low stock: products with stock < 10
     lowStockProducts.value = inventoryController.products

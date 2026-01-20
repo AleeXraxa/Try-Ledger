@@ -27,6 +27,10 @@ class DrLedgerController extends GetxController {
   Future<void> addDrLedgerEntry(LedgerEntry entry) async {
     await _service.addDrLedgerEntry(entry);
     drLedgerEntries.add(entry);
+    drLedgerEntries.sort((a, b) => a.date.compareTo(b.date));
+    if (!isFiltered.value) {
+      filteredEntries.value = drLedgerEntries;
+    }
   }
 
   Future<void> updateDrLedgerEntry(LedgerEntry entry) async {
@@ -34,6 +38,13 @@ class DrLedgerController extends GetxController {
     int index = drLedgerEntries.indexWhere((e) => e.id == entry.id);
     if (index != -1) {
       drLedgerEntries[index] = entry;
+      drLedgerEntries.sort((a, b) => a.date.compareTo(b.date));
+      if (!isFiltered.value) {
+        filteredEntries.value = drLedgerEntries;
+      } else {
+        // Re-apply filter
+        applyDateFilter();
+      }
     }
   }
 
@@ -42,6 +53,9 @@ class DrLedgerController extends GetxController {
     drLedgerEntries.removeWhere((e) => e.id == id);
     // Also remove from filtered entries if it exists there
     filteredEntries.removeWhere((e) => e.id == id);
+    if (!isFiltered.value) {
+      filteredEntries.value = drLedgerEntries;
+    }
   }
 
   void applyDateFilter() {

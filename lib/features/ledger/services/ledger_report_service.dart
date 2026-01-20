@@ -120,12 +120,18 @@ class LedgerReportService {
                 children: [
                   pw.Text(
                     'Company: $companyName',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
                   pw.Spacer(),
                   pw.Text(
                     'Period: From ${formatDate(fromDate)} To ${formatDate(toDate)}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
                 ],
               ),
@@ -147,81 +153,81 @@ class LedgerReportService {
                     decoration: pw.BoxDecoration(color: PdfColors.grey100),
                     children: [
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Date',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Reference No',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Description',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Qty',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Rate',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Debit',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Credit',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Balance',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 8,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
@@ -232,47 +238,47 @@ class LedgerReportService {
                     pw.TableRow(
                       children: [
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             openingDate,
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             'Opening Balance',
                             style: pw.TextStyle(
-                              fontSize: 6,
+                              fontSize: 8,
                               fontWeight: pw.FontWeight.bold,
                             ),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             formatCurrency(openingBalance),
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                       ],
@@ -285,63 +291,63 @@ class LedgerReportService {
                     return pw.TableRow(
                       children: [
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             formatDate(entry.date),
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.referenceNo ?? '',
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.description,
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.qty != null ? entry.qty.toString() : '',
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.rate != null
                                 ? formatCurrency(entry.rate!)
                                 : '',
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.debit > 0 ? formatCurrency(entry.debit) : '',
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.credit > 0
                                 ? formatCurrency(entry.credit)
                                 : '',
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(4),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             formatCurrency(openingBalance),
-                            style: pw.TextStyle(fontSize: 6),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                       ],
@@ -351,33 +357,33 @@ class LedgerReportService {
                   pw.TableRow(
                     children: [
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
-                        child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
-                        child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'TOTALS',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 9,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
-                        child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
-                        child: pw.Text('', style: pw.TextStyle(fontSize: 6)),
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           reportEntries.fold<double>(
                                     0,
@@ -391,11 +397,11 @@ class LedgerReportService {
                                   ),
                                 )
                               : '',
-                          style: pw.TextStyle(fontSize: 6),
+                          style: pw.TextStyle(fontSize: 8),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           reportEntries.fold<double>(
                                     0,
@@ -409,15 +415,15 @@ class LedgerReportService {
                                   ),
                                 )
                               : '',
-                          style: pw.TextStyle(fontSize: 6),
+                          style: pw.TextStyle(fontSize: 8),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(4),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Closing Balance: ${formatCurrency(openingBalance)}',
                           style: pw.TextStyle(
-                            fontSize: 6,
+                            fontSize: 9,
                             fontWeight: pw.FontWeight.bold,
                           ),
                         ),
@@ -425,11 +431,6 @@ class LedgerReportService {
                     ],
                   ),
                 ],
-              ),
-              pw.SizedBox(height: 16),
-              pw.Text(
-                'Debug Info: Opening Balance: $openingBalance, Report Entries: ${reportEntries.length}',
-                style: pw.TextStyle(fontSize: 8),
               ),
               pw.SizedBox(height: 16),
               pw.Align(

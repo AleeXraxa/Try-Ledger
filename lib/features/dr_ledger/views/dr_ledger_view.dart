@@ -719,6 +719,179 @@ class DrLedgerView extends StatelessWidget {
     });
   }
 
+  Widget _buildDoctorSelectorForDialog(
+    int? selectedDoctorId,
+    Function(int?) onDoctorSelected,
+  ) {
+    String selectedDoctorName = 'All Doctors';
+    if (selectedDoctorId != null) {
+      final doctor = doctorController.doctors.firstWhereOrNull(
+        (d) => d.id == selectedDoctorId,
+      );
+      if (doctor != null) {
+        selectedDoctorName = doctor.name;
+      }
+    }
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isHovered = false;
+        return InkWell(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  width: 400,
+                  padding: EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.background,
+                        AppColors.background.withOpacity(0.95),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: Offset(0, 10),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Select Doctor',
+                            style: AppStyles.headingStyle.copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Spacer(),
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: Icon(Icons.close, color: AppColors.neutral),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 24),
+                      ListTile(
+                        title: Text('All Doctors', style: AppStyles.bodyStyle),
+                        onTap: () {
+                          onDoctorSelected(null);
+                          Navigator.of(context).pop();
+                        },
+                      ),
+                      ...doctorController.doctors
+                          .where((doctor) => doctor.isActive)
+                          .map((doctor) {
+                            return ListTile(
+                              title: Text(
+                                doctor.name,
+                                style: AppStyles.bodyStyle,
+                              ),
+                              onTap: () {
+                                onDoctorSelected(doctor.id);
+                                Navigator.of(context).pop();
+                              },
+                            );
+                          })
+                          .toList(),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+          onHover: (value) => setState(() => isHovered = value),
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isHovered
+                  ? AppColors.primary.withOpacity(0.05)
+                  : AppColors.background.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isHovered
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.neutral.withOpacity(0.2),
+                width: 1,
+              ),
+              boxShadow: isHovered
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.person,
+                  color: isHovered ? AppColors.primary : AppColors.neutral,
+                  size: 20,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Doctor',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontSize: 12,
+                          color: AppColors.neutral,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        selectedDoctorName,
+                        style: AppStyles.bodyStyle.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_drop_down, color: AppColors.neutral, size: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildDoctorDropdown() {
     return Center(
       child: Container(
@@ -1174,13 +1347,14 @@ class DrLedgerView extends StatelessWidget {
   void _showGenerateReportDialog(BuildContext context) {
     DateTime? fromDate;
     DateTime? toDate;
+    int? selectedDoctorId;
 
     showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          width: 500,
+          width: 600,
           padding: EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -1270,6 +1444,19 @@ class DrLedgerView extends StatelessWidget {
                       ),
                     ],
                   ),
+                  SizedBox(height: 16),
+                  Text(
+                    'Select Doctor',
+                    style: AppStyles.bodyStyle.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildDoctorSelectorForDialog(
+                    selectedDoctorId,
+                    (doctorId) => setState(() => selectedDoctorId = doctorId),
+                  ),
                   SizedBox(height: 24),
                   _buildPremiumButton(
                     'Generate PDF Report',
@@ -1282,7 +1469,11 @@ class DrLedgerView extends StatelessWidget {
                         );
                         return;
                       }
-                      await _generateDrLedgerReport(fromDate!, toDate!);
+                      await _generateDrLedgerReport(
+                        fromDate!,
+                        toDate!,
+                        selectedDoctorId,
+                      );
                       Navigator.of(context).pop();
                     },
                   ),
@@ -1298,13 +1489,17 @@ class DrLedgerView extends StatelessWidget {
   Future<void> _generateDrLedgerReport(
     DateTime fromDate,
     DateTime toDate,
+    int? doctorId,
   ) async {
-    // Filter entries for the date range
+    // Filter entries for the date range and doctor
     List<LedgerEntry> reportEntries = controller.drLedgerEntries.where((entry) {
-      return entry.date.isAtSameMomentAs(fromDate) ||
+      bool matchesDate =
+          entry.date.isAtSameMomentAs(fromDate) ||
           entry.date.isAfter(fromDate) &&
               entry.date.isBefore(toDate.add(Duration(days: 1)));
-    }).toList();
+      bool matchesDoctor = doctorId == null || entry.companyId == doctorId;
+      return matchesDate && matchesDoctor;
+    }).toList()..sort((a, b) => a.date.compareTo(b.date));
 
     // Calculate opening balance
     double openingBalance = 0.0;
@@ -1339,7 +1534,12 @@ class DrLedgerView extends StatelessWidget {
               pw.SizedBox(height: 8),
               pw.Center(
                 child: pw.Text(
-                  'Dr Ledger',
+                  doctorId != null
+                      ? doctorController.doctors
+                                .firstWhereOrNull((d) => d.id == doctorId)
+                                ?.name ??
+                            'Dr Ledger'
+                      : 'Dr Ledger',
                   style: pw.TextStyle(
                     fontSize: 24,
                     fontWeight: pw.FontWeight.bold,
@@ -1351,78 +1551,83 @@ class DrLedgerView extends StatelessWidget {
               pw.Row(
                 children: [
                   pw.Text(
-                    'Date: ${formatDate(DateTime.now())}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
+                    'Doctor: ${doctorId != null ? doctorController.doctors.firstWhereOrNull((d) => d.id == doctorId)?.name ?? 'Dr Ledger' : 'Dr Ledger'}',
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
                   ),
                   pw.Spacer(),
+                  pw.Text(
+                    'Period: From ${formatDate(fromDate)} To ${formatDate(toDate)}',
+                    style: pw.TextStyle(
+                      fontSize: 10,
+                      fontWeight: pw.FontWeight.bold,
+                    ),
+                  ),
                 ],
-              ),
-              pw.SizedBox(height: 16),
-              pw.Text(
-                'Period: From ${formatDate(fromDate)} To ${formatDate(toDate)}',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
               ),
               pw.SizedBox(height: 16),
               pw.Table(
                 border: pw.TableBorder.all(color: PdfColors.grey300),
                 columnWidths: {
-                  0: pw.FlexColumnWidth(2),
-                  1: pw.FlexColumnWidth(4),
-                  2: pw.FlexColumnWidth(2),
-                  3: pw.FlexColumnWidth(2),
-                  4: pw.FlexColumnWidth(2),
+                  0: pw.FlexColumnWidth(2), // Date
+                  1: pw.FlexColumnWidth(4), // Description
+                  2: pw.FlexColumnWidth(2), // Advance Payment
+                  3: pw.FlexColumnWidth(2), // Sales
+                  4: pw.FlexColumnWidth(2), // Balance
                 },
                 children: [
                   pw.TableRow(
                     decoration: pw.BoxDecoration(color: PdfColors.grey100),
                     children: [
                       pw.Container(
-                        padding: pw.EdgeInsets.all(12),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Date',
                           style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 8,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(12),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Description',
                           style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 8,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(12),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
-                          'Debit',
+                          'Advance Payment',
                           style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 8,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(12),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
-                          'Credit',
+                          'Sales',
                           style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 8,
                           ),
                         ),
                       ),
                       pw.Container(
-                        padding: pw.EdgeInsets.all(12),
+                        padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
                           'Balance',
                           style: pw.TextStyle(
                             fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
+                            fontSize: 8,
                           ),
                         ),
                       ),
@@ -1433,32 +1638,35 @@ class DrLedgerView extends StatelessWidget {
                     pw.TableRow(
                       children: [
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             formatDate(fromDate.subtract(Duration(days: 1))),
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             'Opening Balance',
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(
+                              fontSize: 8,
+                              fontWeight: pw.FontWeight.bold,
+                            ),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 10)),
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 10)),
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             formatCurrency(openingBalance),
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                       ],
@@ -1469,45 +1677,110 @@ class DrLedgerView extends StatelessWidget {
                     return pw.TableRow(
                       children: [
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             formatDate(entry.date),
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.description,
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.debit > 0 ? formatCurrency(entry.debit) : '',
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             entry.credit > 0
                                 ? formatCurrency(entry.credit)
                                 : '',
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                         pw.Container(
-                          padding: pw.EdgeInsets.all(12),
+                          padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
                             formatCurrency(openingBalance),
-                            style: pw.TextStyle(fontSize: 10),
+                            style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
                       ],
                     );
                   }),
+                  // Totals row
+                  pw.TableRow(
+                    children: [
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text(
+                          'TOTALS',
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text(
+                          reportEntries.fold<double>(
+                                    0,
+                                    (sum, entry) => sum + entry.debit,
+                                  ) >
+                                  0
+                              ? formatCurrency(
+                                  reportEntries.fold<double>(
+                                    0,
+                                    (sum, entry) => sum + entry.debit,
+                                  ),
+                                )
+                              : '',
+                          style: pw.TextStyle(fontSize: 8),
+                        ),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text(
+                          reportEntries.fold<double>(
+                                    0,
+                                    (sum, entry) => sum + entry.credit,
+                                  ) >
+                                  0
+                              ? formatCurrency(
+                                  reportEntries.fold<double>(
+                                    0,
+                                    (sum, entry) => sum + entry.credit,
+                                  ),
+                                )
+                              : '',
+                          style: pw.TextStyle(fontSize: 8),
+                        ),
+                      ),
+                      pw.Container(
+                        padding: pw.EdgeInsets.all(6),
+                        child: pw.Text(
+                          'Closing Balance: ${formatCurrency(openingBalance)}',
+                          style: pw.TextStyle(
+                            fontSize: 9,
+                            fontWeight: pw.FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
               ),
               pw.SizedBox(height: 16),
@@ -1518,19 +1791,14 @@ class DrLedgerView extends StatelessWidget {
                   decoration: pw.BoxDecoration(
                     color: PdfColors.grey100,
                     border: pw.Border.all(color: PdfColors.grey300),
-                    borderRadius: pw.BorderRadius.circular(4),
                   ),
                   child: pw.Text(
-                    'Closing Balance: ${formatCurrency(openingBalance)}',
-                    style: pw.TextStyle(
-                      fontSize: 14,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.black,
-                    ),
+                    'Generated on ${formatDate(DateTime.now())}',
+                    style: pw.TextStyle(fontSize: 10),
                   ),
                 ),
               ),
-              pw.SizedBox(height: 32),
+              pw.SizedBox(height: 16),
               pw.Divider(),
               pw.SizedBox(height: 8),
               pw.Center(
