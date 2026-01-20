@@ -1,7 +1,6 @@
 import 'package:get/get.dart';
 import '../models/ledger_entry_model.dart';
 import '../services/ledger_service.dart';
-import '../../company/controllers/company_controller.dart';
 
 class LedgerController extends GetxController {
   final LedgerService _service = LedgerService();

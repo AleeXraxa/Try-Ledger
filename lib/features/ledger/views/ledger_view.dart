@@ -1,11 +1,6 @@
 /*  */
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:pdf/widgets.dart' as pw;
-import 'package:pdf/pdf.dart';
-import 'package:open_file/open_file.dart';
-import 'package:path_provider/path_provider.dart';
-import 'dart:io';
 import '../../../utils/screen_utils.dart';
 import '../../../utils/helpers.dart';
 import '../../../widgets/saas_table.dart';
@@ -13,6 +8,7 @@ import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
 import '../controllers/ledger_controller.dart';
 import '../models/ledger_entry_model.dart';
+import '../services/ledger_report_service.dart';
 import '../../company/controllers/company_controller.dart';
 import '../../company/models/company_model.dart';
 
@@ -89,106 +85,6 @@ class LedgerView extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(ScreenUtils.setWidth(16)),
       child: _buildLedgerView(context),
-    );
-  }
-
-  Widget _buildCompanySelectionView(BuildContext context) {
-    final companyController = Get.find<CompanyController>();
-    return Center(
-      child: Container(
-        constraints: BoxConstraints(maxWidth: 600),
-        padding: EdgeInsets.all(32),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.background,
-              AppColors.background.withOpacity(0.9),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
-              blurRadius: 20,
-              offset: Offset(0, 10),
-            ),
-            BoxShadow(
-              color: Colors.black.withOpacity(0.03),
-              blurRadius: 40,
-              offset: Offset(0, 20),
-            ),
-          ],
-          border: Border.all(
-            color: AppColors.primary.withOpacity(0.08),
-            width: 1,
-          ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 4,
-              height: 24,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(2),
-              ),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'Select Company',
-              style: AppStyles.headingStyle.copyWith(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Choose a company to view its ledger',
-              style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
-            ),
-            SizedBox(height: 32),
-            Obx(() {
-              if (companyController.companies.isEmpty) {
-                return Column(
-                  children: [
-                    Icon(
-                      Icons.business,
-                      size: 64,
-                      color: AppColors.primary.withOpacity(0.6),
-                    ),
-                    SizedBox(height: 16),
-                    Text(
-                      'No Companies Available',
-                      style: AppStyles.headingStyle.copyWith(
-                        fontSize: 18,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    SizedBox(height: 8),
-                    Text(
-                      'Please add companies first in the Company section.',
-                      style: AppStyles.bodyStyle.copyWith(
-                        color: AppColors.neutral,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
-                );
-              }
-              return Wrap(
-                spacing: 16,
-                runSpacing: 16,
-                children: companyController.companies.map((company) {
-                  return _buildCompanySelectionCard(context, company);
-                }).toList(),
-              );
-            }),
-          ],
-        ),
-      ),
     );
   }
 
@@ -581,8 +477,9 @@ class LedgerView extends StatelessWidget {
                           // Export
                         },
                         onRowTap: (index) {
-                          if (index == 0)
+                          if (index == 0) {
                             return; // Opening balance row, no details
+                          }
                           int entryIndex = index - 1;
                           if (entryIndex >= 0 &&
                               entryIndex < controller.filteredEntries.length) {
@@ -950,6 +847,168 @@ class LedgerView extends StatelessWidget {
     });
   }
 
+  Widget _buildReportCompanySelector(
+    BuildContext context,
+    int? selectedCompanyId,
+    Function(int?) onCompanyChanged,
+  ) {
+    final companyController = Get.find<CompanyController>();
+    String selectedCompanyName = 'Select Company';
+    if (selectedCompanyId != null) {
+      final company = companyController.companies.firstWhereOrNull(
+        (c) => c.id == selectedCompanyId,
+      );
+      if (company != null) {
+        selectedCompanyName = company.name;
+      }
+    }
+
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isHovered = false;
+        return InkWell(
+          onTap: () {
+            showDialog(
+              context: context,
+              builder: (context) => Dialog(
+                backgroundColor: Colors.transparent,
+                child: Container(
+                  width: 400,
+                  padding: EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.background,
+                        AppColors.background.withOpacity(0.95),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(20),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.2),
+                        blurRadius: 20,
+                        offset: Offset(0, 10),
+                      ),
+                    ],
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.1),
+                      width: 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            width: 4,
+                            height: 24,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary,
+                              borderRadius: BorderRadius.circular(2),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Text(
+                            'Select Company for Report',
+                            style: AppStyles.headingStyle.copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          Spacer(),
+                          IconButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            icon: Icon(Icons.close, color: AppColors.neutral),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 24),
+                      ...companyController.companies.map((company) {
+                        return ListTile(
+                          title: Text(company.name, style: AppStyles.bodyStyle),
+                          onTap: () {
+                            onCompanyChanged(company.id);
+                            Navigator.of(context).pop();
+                          },
+                        );
+                      }).toList(),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          },
+          onHover: (value) => setState(() => isHovered = value),
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: isHovered
+                  ? AppColors.primary.withOpacity(0.05)
+                  : AppColors.background.withOpacity(0.8),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isHovered
+                    ? AppColors.primary.withOpacity(0.3)
+                    : AppColors.neutral.withOpacity(0.2),
+                width: 1,
+              ),
+              boxShadow: isHovered
+                  ? [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: Offset(0, 2),
+                      ),
+                    ]
+                  : null,
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.business,
+                  color: isHovered ? AppColors.primary : AppColors.neutral,
+                  size: 20,
+                ),
+                SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Company',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontSize: 12,
+                          color: AppColors.neutral,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                      SizedBox(height: 2),
+                      Text(
+                        selectedCompanyName,
+                        style: AppStyles.bodyStyle.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Icon(Icons.arrow_drop_down, color: AppColors.neutral, size: 20),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   Widget _buildDatePicker(String label, IconData icon, bool isFromDate) {
     return Obx(() {
       DateTime? selectedDate = isFromDate
@@ -1068,7 +1127,7 @@ class LedgerView extends StatelessWidget {
     final TextEditingController descriptionController = TextEditingController();
     final TextEditingController amountController = TextEditingController();
     DateTime selectedDate = DateTime.now();
-    String selectedType = 'debit';
+    String? selectedType = 'debit';
     int? selectedCompanyId = controller.selectedCompanyId.value;
     String? descriptionError;
     String? amountError;
@@ -1176,6 +1235,7 @@ class LedgerView extends StatelessWidget {
                     context,
                     selectedDate,
                     (date) => selectedDate = date,
+                    label: 'Date',
                   ),
                   SizedBox(height: 24),
                   _buildPremiumButton(
@@ -1474,13 +1534,14 @@ class LedgerView extends StatelessWidget {
   void _showGenerateReportDialog(BuildContext context) {
     DateTime? fromDate;
     DateTime? toDate;
+    int? selectedCompanyId;
 
     showDialog(
       context: context,
       builder: (context) => Dialog(
         backgroundColor: Colors.transparent,
         child: Container(
-          width: 500,
+          width: 600,
           padding: EdgeInsets.all(24),
           decoration: BoxDecoration(
             gradient: LinearGradient(
@@ -1542,6 +1603,21 @@ class LedgerView extends StatelessWidget {
                   ),
                   SizedBox(height: 24),
                   Text(
+                    'Select Company',
+                    style: AppStyles.bodyStyle.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textPrimary,
+                    ),
+                  ),
+                  SizedBox(height: 16),
+                  _buildReportCompanySelector(
+                    context,
+                    selectedCompanyId,
+                    (companyId) =>
+                        setState(() => selectedCompanyId = companyId),
+                  ),
+                  SizedBox(height: 24),
+                  Text(
                     'Select Date Range',
                     style: AppStyles.bodyStyle.copyWith(
                       fontWeight: FontWeight.w600,
@@ -1576,13 +1652,23 @@ class LedgerView extends StatelessWidget {
                     Icons.picture_as_pdf,
                     AppColors.primary,
                     () async {
+                      if (selectedCompanyId == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('Please select a company')),
+                        );
+                        return;
+                      }
                       if (fromDate == null || toDate == null) {
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(content: Text('Please select both dates')),
                         );
                         return;
                       }
-                      await _generateLedgerReport(fromDate!, toDate!);
+                      await LedgerReportService.generateLedgerReport(
+                        fromDate!,
+                        toDate!,
+                        selectedCompanyId!,
+                      );
                       Navigator.of(context).pop();
                     },
                   ),
@@ -1595,593 +1681,78 @@ class LedgerView extends StatelessWidget {
     );
   }
 
-  Future<void> _generateLedgerReport(DateTime fromDate, DateTime toDate) async {
-    // Filter entries for the date range
-    List<LedgerEntry> reportEntries = controller.ledgerEntries.where((entry) {
-      return entry.date.isAtSameMomentAs(fromDate) ||
-          entry.date.isAfter(fromDate) &&
-              entry.date.isBefore(toDate.add(Duration(days: 1)));
-    }).toList();
-
-    // Calculate opening balance
-    double openingBalance = 0.0;
-    for (var entry in controller.ledgerEntries) {
-      if (entry.date.isBefore(fromDate)) {
-        openingBalance += entry.debit - entry.credit;
-      } else {
-        break;
-      }
-    }
-
-    // Create PDF
-    final pdf = pw.Document();
-
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context context) {
-          return pw.Column(
-            crossAxisAlignment: pw.CrossAxisAlignment.start,
-            children: [
-              // Header
-              pw.Center(
-                child: pw.Text(
-                  'Wintop Pharma',
-                  style: pw.TextStyle(
-                    fontSize: 32,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.blue900,
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 8),
-              pw.Center(
-                child: pw.Text(
-                  'Ledger',
-                  style: pw.TextStyle(
-                    fontSize: 24,
-                    fontWeight: pw.FontWeight.bold,
-                    color: PdfColors.black,
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 16),
-              pw.Row(
-                children: [
-                  pw.Text(
-                    'Date: ${formatDate(DateTime.now())}',
-                    style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-                  ),
-                  pw.Spacer(),
-                ],
-              ),
-              pw.SizedBox(height: 16),
-              pw.Text(
-                'Period: From ${formatDate(fromDate)} To ${formatDate(toDate)}',
-                style: pw.TextStyle(fontWeight: pw.FontWeight.bold),
-              ),
-              pw.SizedBox(height: 16),
-              pw.Table(
-                border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: pw.FlexColumnWidth(2),
-                  1: pw.FlexColumnWidth(4),
-                  2: pw.FlexColumnWidth(2),
-                  3: pw.FlexColumnWidth(2),
-                  4: pw.FlexColumnWidth(2),
-                },
-                children: [
-                  pw.TableRow(
-                    decoration: pw.BoxDecoration(color: PdfColors.grey100),
-                    children: [
-                      pw.Container(
-                        padding: pw.EdgeInsets.all(12),
-                        child: pw.Text(
-                          'Date',
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      pw.Container(
-                        padding: pw.EdgeInsets.all(12),
-                        child: pw.Text(
-                          'Description',
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      pw.Container(
-                        padding: pw.EdgeInsets.all(12),
-                        child: pw.Text(
-                          'Debit',
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      pw.Container(
-                        padding: pw.EdgeInsets.all(12),
-                        child: pw.Text(
-                          'Credit',
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                      pw.Container(
-                        padding: pw.EdgeInsets.all(12),
-                        child: pw.Text(
-                          'Balance',
-                          style: pw.TextStyle(
-                            fontWeight: pw.FontWeight.bold,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                  // Opening balance row
-                  if (openingBalance != 0 || reportEntries.isNotEmpty)
-                    pw.TableRow(
-                      children: [
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            formatDate(fromDate.subtract(Duration(days: 1))),
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            'Opening Balance',
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 10)),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text('', style: pw.TextStyle(fontSize: 10)),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            formatCurrency(openingBalance),
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                      ],
-                    ),
-                  // Entries
-                  ...reportEntries.map((entry) {
-                    openingBalance += entry.debit - entry.credit;
-                    return pw.TableRow(
-                      children: [
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            formatDate(entry.date),
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            entry.description,
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            entry.debit > 0 ? formatCurrency(entry.debit) : '',
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            entry.credit > 0
-                                ? formatCurrency(entry.credit)
-                                : '',
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                        pw.Container(
-                          padding: pw.EdgeInsets.all(12),
-                          child: pw.Text(
-                            formatCurrency(openingBalance),
-                            style: pw.TextStyle(fontSize: 10),
-                          ),
-                        ),
-                      ],
-                    );
-                  }),
-                ],
-              ),
-              pw.SizedBox(height: 16),
-              pw.Align(
-                alignment: pw.Alignment.centerRight,
-                child: pw.Container(
-                  padding: pw.EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: pw.BoxDecoration(
-                    color: PdfColors.grey100,
-                    border: pw.Border.all(color: PdfColors.grey300),
-                    borderRadius: pw.BorderRadius.circular(4),
-                  ),
-                  child: pw.Text(
-                    'Closing Balance: ${formatCurrency(openingBalance)}',
-                    style: pw.TextStyle(
-                      fontSize: 14,
-                      fontWeight: pw.FontWeight.bold,
-                      color: PdfColors.black,
-                    ),
-                  ),
-                ),
-              ),
-              pw.SizedBox(height: 32),
-              pw.Divider(),
-              pw.SizedBox(height: 8),
-              pw.Center(
-                child: pw.Text(
-                  'Software by: TryUnity Solutions',
-                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
-                ),
-              ),
-              pw.SizedBox(height: 4),
-              pw.Center(
-                child: pw.Text(
-                  'Email: dev-alee@outlook.com',
-                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
-                ),
-              ),
-              pw.SizedBox(height: 4),
-              pw.Center(
-                child: pw.Text(
-                  'Phone: +92-302-3476605',
-                  style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
-                ),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-
-    // Save and open PDF
-    final output = await getTemporaryDirectory();
-    final file = File(
-      '${output.path}/ledger_report_${DateTime.now().millisecondsSinceEpoch}.pdf',
-    );
-    await file.writeAsBytes(await pdf.save());
-
-    await OpenFile.open(file.path);
-  }
-
-  Widget _buildDateField(
-    BuildContext context,
-    DateTime selectedDate,
-    Function(DateTime) onDateChanged, {
-    String label = 'Date',
-  }) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          label,
-          style: AppStyles.bodyStyle.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: 8),
-        InkWell(
-          onTap: () async {
-            DateTime? picked = await showDatePicker(
-              context: context,
-              initialDate: selectedDate,
-              firstDate: DateTime(2020),
-              lastDate: DateTime(2030),
-              builder: (context, child) {
-                return Theme(
-                  data: Theme.of(context).copyWith(
-                    colorScheme: ColorScheme.light(
-                      primary: AppColors.primary,
-                      onPrimary: Colors.white,
-                      surface: AppColors.background,
-                      onSurface: AppColors.textPrimary,
-                    ),
-                    dialogBackgroundColor: AppColors.background,
-                  ),
-                  child: child!,
-                );
-              },
-            );
-            if (picked != null) {
-              onDateChanged(picked);
-            }
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.neutral.withOpacity(0.2)),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.background.withOpacity(0.5),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.calendar_today, color: AppColors.primary),
-                SizedBox(width: 12),
-                Text(formatDate(selectedDate), style: AppStyles.bodyStyle),
-                Spacer(),
-                Icon(Icons.arrow_drop_down, color: AppColors.neutral),
-              ],
-            ),
-          ),
-        ),
-      ],
-    );
-  }
-
   Widget _buildEmptyState(BuildContext context) {
     return Center(
-      child: Container(
-        padding: EdgeInsets.all(32),
-        constraints: BoxConstraints(maxWidth: 600),
-        decoration: BoxDecoration(
-          gradient: LinearGradient(
-            colors: [
-              AppColors.background,
-              AppColors.background.withOpacity(0.9),
-            ],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.account_balance_wallet,
+            size: 64,
+            color: AppColors.neutral.withOpacity(0.5),
           ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.primary.withOpacity(0.06),
-              blurRadius: 20,
-              offset: Offset(0, 10),
+          SizedBox(height: 16),
+          Text(
+            'No ledger entries found',
+            style: AppStyles.headingStyle.copyWith(
+              fontSize: 18,
+              color: AppColors.neutral,
             ),
-          ],
-          border: Border.all(
-            color: AppColors.primary.withOpacity(0.08),
-            width: 1,
           ),
-        ),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              Icons.account_balance_wallet,
-              size: 64,
-              color: AppColors.primary.withOpacity(0.6),
-            ),
-            SizedBox(height: 16),
-            Text(
-              'No Ledger Entries Yet',
-              style: AppStyles.headingStyle.copyWith(
-                fontSize: 24,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            SizedBox(height: 8),
-            Text(
-              'Use the "Add Entry" button above to start tracking your financial transactions.',
-              style: AppStyles.bodyStyle.copyWith(
-                color: AppColors.neutral,
-                fontSize: 16,
-              ),
-              textAlign: TextAlign.center,
-            ),
-          ],
-        ),
+          SizedBox(height: 8),
+          Text(
+            'Add some transactions to see your ledger',
+            style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
+          ),
+        ],
       ),
     );
   }
 
   Widget _buildTypeDropdown(
     BuildContext context,
-    String selectedType,
-    Function(String) onTypeChanged,
+    String? selectedType,
+    Function(String?) onTypeChanged,
   ) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Type',
-          style: AppStyles.bodyStyle.copyWith(
-            fontWeight: FontWeight.w600,
-            color: AppColors.textPrimary,
-          ),
-        ),
-        SizedBox(height: 8),
-        InkWell(
-          onTap: () {
-            showDialog(
-              context: context,
-              builder: (context) => SimpleDialog(
-                backgroundColor: AppColors.background,
-                children: [
-                  SimpleDialogOption(
-                    onPressed: () {
-                      onTypeChanged('debit');
-                      Navigator.pop(context);
-                    },
-                    child: Text('Debit', style: AppStyles.bodyStyle),
-                  ),
-                  SimpleDialogOption(
-                    onPressed: () {
-                      onTypeChanged('credit');
-                      Navigator.pop(context);
-                    },
-                    child: Text('Credit', style: AppStyles.bodyStyle),
-                  ),
-                ],
-              ),
-            );
-          },
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(
-              border: Border.all(color: AppColors.neutral.withOpacity(0.2)),
-              borderRadius: BorderRadius.circular(12),
-              color: AppColors.background.withOpacity(0.5),
-            ),
-            child: Row(
-              children: [
-                Icon(Icons.swap_horiz, color: AppColors.primary),
-                SizedBox(width: 12),
-                Text(
-                  selectedType[0].toUpperCase() + selectedType.substring(1),
-                  style: AppStyles.bodyStyle,
-                ),
-                Spacer(),
-                Icon(Icons.arrow_drop_down, color: AppColors.neutral),
-              ],
-            ),
-          ),
-        ),
-      ],
+    String? localSelectedType = selectedType;
+    return DropdownButtonFormField<String>(
+      value: localSelectedType,
+      decoration: InputDecoration(
+        labelText: 'Entry Type',
+        border: OutlineInputBorder(),
+      ),
+      items: ['All', 'Debit', 'Credit'].map((type) {
+        return DropdownMenuItem<String>(value: type, child: Text(type));
+      }).toList(),
+      onChanged: onTypeChanged,
     );
   }
 
-  Widget _buildCompanyDropdown(
+  Widget _buildDateField(
     BuildContext context,
-    int? selectedCompanyId,
-    Function(int?) onCompanyChanged,
-  ) {
-    final companyController = Get.find<CompanyController>();
-    return Obx(() {
-      String selectedCompanyName = 'Select Company';
-      if (selectedCompanyId != null) {
-        final company = companyController.companies.firstWhereOrNull(
-          (c) => c.id == selectedCompanyId,
+    DateTime initialDate,
+    Function(DateTime) onDateChanged, {
+    required String label,
+  }) {
+    return InkWell(
+      onTap: () async {
+        final picked = await showDatePicker(
+          context: context,
+          initialDate: initialDate,
+          firstDate: DateTime(2000),
+          lastDate: DateTime(2100),
         );
-        if (company != null) {
-          selectedCompanyName = company.name;
+        if (picked != null) {
+          onDateChanged(picked);
         }
-      }
-
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'Company',
-            style: AppStyles.bodyStyle.copyWith(
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
-            ),
-          ),
-          SizedBox(height: 8),
-          InkWell(
-            onTap: () {
-              showDialog(
-                context: context,
-                builder: (context) => Dialog(
-                  backgroundColor: Colors.transparent,
-                  child: Container(
-                    width: 400,
-                    padding: EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [
-                          AppColors.background,
-                          AppColors.background.withOpacity(0.95),
-                        ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
-                      ),
-                      borderRadius: BorderRadius.circular(20),
-                      boxShadow: [
-                        BoxShadow(
-                          color: AppColors.primary.withOpacity(0.2),
-                          blurRadius: 20,
-                          offset: Offset(0, 10),
-                        ),
-                      ],
-                      border: Border.all(
-                        color: AppColors.primary.withOpacity(0.1),
-                        width: 1,
-                      ),
-                    ),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          children: [
-                            Container(
-                              width: 4,
-                              height: 24,
-                              decoration: BoxDecoration(
-                                color: AppColors.primary,
-                                borderRadius: BorderRadius.circular(2),
-                              ),
-                            ),
-                            SizedBox(width: 12),
-                            Text(
-                              'Select Company',
-                              style: AppStyles.headingStyle.copyWith(
-                                fontSize: 20,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                            Spacer(),
-                            IconButton(
-                              onPressed: () => Navigator.of(context).pop(),
-                              icon: Icon(Icons.close, color: AppColors.neutral),
-                            ),
-                          ],
-                        ),
-                        SizedBox(height: 24),
-                        ...companyController.companies.map((company) {
-                          return ListTile(
-                            title: Text(
-                              company.name,
-                              style: AppStyles.bodyStyle,
-                            ),
-                            onTap: () {
-                              onCompanyChanged(company.id);
-                              Navigator.of(context).pop();
-                            },
-                          );
-                        }).toList(),
-                      ],
-                    ),
-                  ),
-                ),
-              );
-            },
-            child: Container(
-              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                border: Border.all(color: AppColors.neutral.withOpacity(0.2)),
-                borderRadius: BorderRadius.circular(12),
-                color: AppColors.background.withOpacity(0.5),
-              ),
-              child: Row(
-                children: [
-                  Icon(Icons.business, color: AppColors.primary),
-                  SizedBox(width: 12),
-                  Text(selectedCompanyName, style: AppStyles.bodyStyle),
-                  Spacer(),
-                  Icon(Icons.arrow_drop_down, color: AppColors.neutral),
-                ],
-              ),
-            ),
-          ),
-        ],
-      );
-    });
+      },
+      child: InputDecorator(
+        decoration: InputDecoration(
+          labelText: label,
+          border: OutlineInputBorder(),
+        ),
+        child: Text(formatDate(initialDate)),
+      ),
+    );
   }
 }

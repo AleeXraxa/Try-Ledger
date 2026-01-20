@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:get/get.dart';
 import 'package:flutter_staggered_animations/flutter_staggered_animations.dart';
 import 'custom_card.dart';
 import '../constants/app_styles.dart';
 import '../constants/app_colors.dart';
-import '../utils/screen_utils.dart';
 
 class SaaSTable extends StatefulWidget {
   final String title;

@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
-import '../../../constants/app_fonts.dart';
 import '../../../utils/helpers.dart';
 import '../controllers/inventory_controller.dart';
 import '../models/product_model.dart';

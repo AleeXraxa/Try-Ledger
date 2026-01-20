@@ -9,11 +9,9 @@ import '../../../controllers/layout_controller.dart';
 import '../controllers/dashboard_controller.dart';
 import '../../ledger/models/ledger_entry_model.dart';
 import '../../inventory/models/product_model.dart';
-import '../../inventory/models/invoice_model.dart';
 import '../../ledger/controllers/ledger_controller.dart';
 import '../../inventory/views/add_product_dialog.dart';
 import '../../inventory/views/purchase_dialog.dart';
-import '../../inventory/views/invoice_details_dialog.dart';
 
 class DashboardView extends StatelessWidget {
   final DashboardController controller = Get.put(DashboardController());
