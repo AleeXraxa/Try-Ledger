@@ -69,6 +69,7 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
     controller
         .addDrLedgerEntry(entry)
         .then((_) {
+          controller.applyDateFilter(); // Refresh filtered entries
           Navigator.of(context).pop();
           _showSuccessDialog(context, 'Dr Entry has been added successfully.');
         })

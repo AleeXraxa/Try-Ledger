@@ -50,8 +50,13 @@ class LedgerView extends StatelessWidget {
       });
     }
 
+    double totalDebit = 0;
+    double totalCredit = 0;
+
     for (var entry in entries) {
       runningBalance += entry.debit - entry.credit;
+      totalDebit += entry.debit;
+      totalCredit += entry.credit;
       rows.add({
         'Date': formatDate(entry.date),
         'Reference No': entry.referenceNo ?? '',
@@ -63,6 +68,18 @@ class LedgerView extends StatelessWidget {
         'Balance': formatCurrency(runningBalance),
       });
     }
+
+    // Add totals row
+    rows.add({
+      'Date': '',
+      'Reference No': '',
+      'Description': 'TOTALS',
+      'Qty': '',
+      'Rate': '',
+      'Debit': totalDebit > 0 ? formatCurrency(totalDebit) : '',
+      'Credit': totalCredit > 0 ? formatCurrency(totalCredit) : '',
+      'Balance': 'Closing Balance: ${formatCurrency(runningBalance)}',
+    });
 
     return rows;
   }

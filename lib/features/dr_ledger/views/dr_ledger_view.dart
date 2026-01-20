@@ -49,8 +49,13 @@ class DrLedgerView extends StatelessWidget {
       });
     }
 
+    double totalDebit = 0;
+    double totalCredit = 0;
+
     for (var entry in entries) {
       runningBalance += entry.debit - entry.credit;
+      totalDebit += entry.debit;
+      totalCredit += entry.credit;
       rows.add({
         'Date': formatDate(entry.date),
         'Description': entry.description,
@@ -59,6 +64,15 @@ class DrLedgerView extends StatelessWidget {
         'Balance': formatCurrency(runningBalance),
       });
     }
+
+    // Add totals row
+    rows.add({
+      'Date': '',
+      'Description': 'TOTALS',
+      'Debit': totalDebit > 0 ? formatCurrency(totalDebit) : '',
+      'Credit': totalCredit > 0 ? formatCurrency(totalCredit) : '',
+      'Balance': 'Closing Balance: ${formatCurrency(runningBalance)}',
+    });
 
     return rows;
   }
