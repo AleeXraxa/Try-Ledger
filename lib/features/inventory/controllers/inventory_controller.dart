@@ -15,6 +15,11 @@ class InventoryController extends GetxController {
 
   var products = <Product>[].obs;
   var invoices = <Invoice>[].obs;
+  var filteredInvoices = <Invoice>[].obs;
+  var fromDate = Rxn<DateTime>();
+  var toDate = Rxn<DateTime>();
+  var selectedCompanyId = Rxn<int>();
+  var isFiltered = false.obs;
 
   @override
   void onInit() {
@@ -44,6 +49,7 @@ class InventoryController extends GetxController {
 
   void loadInvoices() async {
     invoices.value = await _service.getInvoices();
+    filteredInvoices.value = invoices;
   }
 
   Future<void> addInvoice(Invoice invoice) async {
@@ -345,5 +351,40 @@ class InventoryController extends GetxController {
 
     // Open the file
     await OpenFile.open(filePath);
+  }
+
+  void applyDateFilter() {
+    filteredInvoices.value = invoices.where((invoice) {
+      bool matchesCompany =
+          selectedCompanyId.value == null ||
+          invoice.companyId == selectedCompanyId.value;
+
+      bool matchesFromDate =
+          fromDate.value == null ||
+          invoice.date.isAtSameMomentAs(fromDate.value!) ||
+          invoice.date.isAfter(fromDate.value!);
+
+      bool matchesToDate =
+          toDate.value == null ||
+          invoice.date.isAtSameMomentAs(toDate.value!) ||
+          invoice.date.isBefore(
+            toDate.value!.add(Duration(days: 1)),
+          ); // Include the end date
+
+      return matchesCompany && matchesFromDate && matchesToDate;
+    }).toList();
+
+    isFiltered.value =
+        selectedCompanyId.value != null ||
+        fromDate.value != null ||
+        toDate.value != null;
+  }
+
+  void clearFilter() {
+    fromDate.value = null;
+    toDate.value = null;
+    selectedCompanyId.value = null;
+    filteredInvoices.value = invoices;
+    isFiltered.value = false;
   }
 }

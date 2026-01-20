@@ -249,6 +249,8 @@ class DrLedgerView extends StatelessWidget {
                             ),
                           ),
                           SizedBox(width: 16),
+                          Expanded(child: _buildDoctorSelector()),
+                          SizedBox(width: 16),
                           _buildPremiumButton(
                             'Apply Filter',
                             Icons.filter_list,
@@ -281,10 +283,6 @@ class DrLedgerView extends StatelessWidget {
           SizedBox(height: 24),
           Expanded(
             child: Obx(() {
-              if (controller.selectedDoctorId.value == null) {
-                return _buildDoctorSelector();
-              }
-
               double openingBalance = 0.0;
               if (controller.isFiltered.value &&
                   controller.fromDate.value != null) {
@@ -540,46 +538,188 @@ class DrLedgerView extends StatelessWidget {
     });
   }
 
-  Widget _buildDoctorDropdown() {
+  Widget _buildDoctorSelector() {
     return Obx(() {
-      return DropdownButtonFormField<int?>(
-        value: controller.selectedDoctorId.value,
-        hint: Text('Select Doctor to View Ledger'),
-        isExpanded: true,
-        items: doctorController.doctors.where((doctor) => doctor.isActive).map((
-          doctor,
-        ) {
-          return DropdownMenuItem<int?>(
-            value: doctor.id,
-            child: Text(doctor.name),
+      String selectedDoctorName = 'All Doctors';
+      if (controller.selectedDoctorId.value != null) {
+        final doctor = doctorController.doctors.firstWhereOrNull(
+          (d) => d.id == controller.selectedDoctorId.value,
+        );
+        if (doctor != null) {
+          selectedDoctorName = doctor.name;
+        }
+      }
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          bool isHovered = false;
+          return InkWell(
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (context) => Dialog(
+                  backgroundColor: Colors.transparent,
+                  child: Container(
+                    width: 400,
+                    padding: EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          AppColors.background,
+                          AppColors.background.withOpacity(0.95),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.2),
+                          blurRadius: 20,
+                          offset: Offset(0, 10),
+                        ),
+                      ],
+                      border: Border.all(
+                        color: AppColors.primary.withOpacity(0.1),
+                        width: 1,
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          children: [
+                            Container(
+                              width: 4,
+                              height: 24,
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(2),
+                              ),
+                            ),
+                            SizedBox(width: 12),
+                            Text(
+                              'Select Doctor',
+                              style: AppStyles.headingStyle.copyWith(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                            Spacer(),
+                            IconButton(
+                              onPressed: () => Navigator.of(context).pop(),
+                              icon: Icon(Icons.close, color: AppColors.neutral),
+                            ),
+                          ],
+                        ),
+                        SizedBox(height: 24),
+                        ListTile(
+                          title: Text(
+                            'All Doctors',
+                            style: AppStyles.bodyStyle,
+                          ),
+                          onTap: () {
+                            controller.selectedDoctorId.value = null;
+                            controller.applyDateFilter();
+                            Navigator.of(context).pop();
+                          },
+                        ),
+                        ...doctorController.doctors
+                            .where((doctor) => doctor.isActive)
+                            .map((doctor) {
+                              return ListTile(
+                                title: Text(
+                                  doctor.name,
+                                  style: AppStyles.bodyStyle,
+                                ),
+                                onTap: () {
+                                  controller.selectedDoctorId.value = doctor.id;
+                                  controller.applyDateFilter();
+                                  Navigator.of(context).pop();
+                                },
+                              );
+                            })
+                            .toList(),
+                      ],
+                    ),
+                  ),
+                ),
+              );
+            },
+            onHover: (value) => setState(() => isHovered = value),
+            borderRadius: BorderRadius.circular(12),
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isHovered
+                    ? AppColors.primary.withOpacity(0.05)
+                    : AppColors.background.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isHovered
+                      ? AppColors.primary.withOpacity(0.3)
+                      : AppColors.neutral.withOpacity(0.2),
+                  width: 1,
+                ),
+                boxShadow: isHovered
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    Icons.person,
+                    color: isHovered ? AppColors.primary : AppColors.neutral,
+                    size: 20,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Doctor',
+                          style: AppStyles.bodyStyle.copyWith(
+                            fontSize: 12,
+                            color: AppColors.neutral,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          selectedDoctorName,
+                          style: AppStyles.bodyStyle.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: AppColors.neutral,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
           );
-        }).toList(),
-        onChanged: (value) {
-          controller.selectedDoctorId.value = value;
-          controller.applyDateFilter(); // Apply filter to show the ledger
         },
-        decoration: InputDecoration(
-          prefixIcon: Icon(Icons.person, color: AppColors.primary),
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.neutral.withOpacity(0.2)),
-          ),
-          enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.neutral.withOpacity(0.2)),
-          ),
-          focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(12),
-            borderSide: BorderSide(color: AppColors.primary, width: 2),
-          ),
-          filled: true,
-          fillColor: AppColors.background.withOpacity(0.5),
-        ),
       );
     });
   }
 
-  Widget _buildDoctorSelector() {
+  Widget _buildDoctorDropdown() {
     return Center(
       child: Container(
         padding: EdgeInsets.all(40),
@@ -622,7 +762,7 @@ class DrLedgerView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             SizedBox(height: 32),
-            _buildDoctorDropdown(),
+            SizedBox.shrink(),
           ],
         ),
       ),

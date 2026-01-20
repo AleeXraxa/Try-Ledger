@@ -198,8 +198,8 @@ class InventoryView extends StatelessWidget {
           ),
           SizedBox(height: 24),
           Obx(() {
-            int totalInvoices = controller.invoices.length;
-            double totalAmount = controller.invoices.fold(
+            int totalInvoices = controller.filteredInvoices.length;
+            double totalAmount = controller.filteredInvoices.fold(
               0.0,
               (sum, invoice) => sum + invoice.total,
             );
@@ -260,6 +260,95 @@ class InventoryView extends StatelessWidget {
             );
           }),
           SizedBox(height: 24),
+          // Filter Section
+          Container(
+            padding: EdgeInsets.all(20),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  AppColors.background.withOpacity(0.5),
+                  AppColors.background.withOpacity(0.3),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: AppColors.primary.withOpacity(0.1),
+                width: 1,
+              ),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 3,
+                      height: 20,
+                      decoration: BoxDecoration(
+                        color: AppColors.accent,
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                    SizedBox(width: 10),
+                    Text(
+                      'Filter Invoices',
+                      style: AppStyles.bodyStyle.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ),
+                SizedBox(height: 16),
+                Row(
+                  children: [
+                    Expanded(
+                      child: _buildDatePicker(
+                        'From Date',
+                        Icons.calendar_today,
+                        true, // isFromDate
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: _buildDatePicker(
+                        'To Date',
+                        Icons.calendar_today,
+                        false, // isFromDate
+                      ),
+                    ),
+                    SizedBox(width: 16),
+                    Expanded(child: _buildCompanyDropdown()),
+                    SizedBox(width: 16),
+                    _buildPremiumButton(
+                      'Apply Filter',
+                      Icons.filter_list,
+                      AppColors.primary,
+                      () {
+                        controller.applyDateFilter();
+                      },
+                    ),
+                    SizedBox(width: 12),
+                    Obx(
+                      () => controller.isFiltered.value
+                          ? _buildPremiumButton(
+                              'Clear Filter',
+                              Icons.clear,
+                              Colors.grey,
+                              () {
+                                controller.clearFilter();
+                              },
+                            )
+                          : SizedBox.shrink(),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+          SizedBox(height: 24),
           Expanded(child: Obx(() => _buildInvoicesTable())),
         ],
       ),
@@ -268,9 +357,9 @@ class InventoryView extends StatelessWidget {
 
   Widget _buildInvoicesTable() {
     final companyController = Get.find<CompanyController>();
-    if (controller.invoices.isEmpty) {
+    if (controller.filteredInvoices.isEmpty) {
       return Center(
-        child: Text('No invoices added yet.', style: AppStyles.bodyStyle),
+        child: Text('No invoices found.', style: AppStyles.bodyStyle),
       );
     }
     return LayoutBuilder(
@@ -350,7 +439,7 @@ class InventoryView extends StatelessWidget {
                     ),
                   ),
                 ],
-                rows: controller.invoices.asMap().entries.map((entry) {
+                rows: controller.filteredInvoices.asMap().entries.map((entry) {
                   int index = entry.key;
                   var invoice = entry.value;
                   final company = companyController.companies.firstWhereOrNull(
@@ -454,8 +543,164 @@ class InventoryView extends StatelessWidget {
     );
   }
 
+  Widget _buildDatePicker(String label, IconData icon, bool isFromDate) {
+    return Obx(() {
+      DateTime? selectedDate = isFromDate
+          ? controller.fromDate.value
+          : controller.toDate.value;
+      String displayText = selectedDate != null
+          ? formatDate(selectedDate)
+          : 'Select Date';
+
+      return StatefulBuilder(
+        builder: (context, setState) {
+          bool isHovered = false;
+          return InkWell(
+            onTap: () async {
+              DateTime? picked = await showDatePicker(
+                context: context,
+                initialDate: selectedDate ?? DateTime.now(),
+                firstDate: DateTime(2020),
+                lastDate: DateTime(2030),
+                builder: (context, child) {
+                  return Theme(
+                    data: Theme.of(context).copyWith(
+                      colorScheme: ColorScheme.light(
+                        primary: AppColors.primary,
+                        onPrimary: Colors.white,
+                        surface: AppColors.background,
+                        onSurface: AppColors.textPrimary,
+                      ),
+                      dialogBackgroundColor: AppColors.background,
+                    ),
+                    child: child!,
+                  );
+                },
+              );
+              if (picked != null) {
+                if (isFromDate) {
+                  controller.fromDate.value = picked;
+                } else {
+                  controller.toDate.value = picked;
+                }
+              }
+            },
+            onHover: (value) => setState(() => isHovered = value),
+            borderRadius: BorderRadius.circular(12),
+            child: AnimatedContainer(
+              duration: Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isHovered
+                    ? AppColors.primary.withOpacity(0.05)
+                    : AppColors.background.withOpacity(0.8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isHovered
+                      ? AppColors.primary.withOpacity(0.3)
+                      : AppColors.neutral.withOpacity(0.2),
+                  width: 1,
+                ),
+                boxShadow: isHovered
+                    ? [
+                        BoxShadow(
+                          color: AppColors.primary.withOpacity(0.1),
+                          blurRadius: 8,
+                          offset: Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                children: [
+                  Icon(
+                    icon,
+                    color: isHovered ? AppColors.primary : AppColors.neutral,
+                    size: 20,
+                  ),
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          label,
+                          style: AppStyles.bodyStyle.copyWith(
+                            fontSize: 12,
+                            color: AppColors.neutral,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                        SizedBox(height: 2),
+                        Text(
+                          displayText,
+                          style: AppStyles.bodyStyle.copyWith(
+                            color: AppColors.textPrimary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Icon(
+                    Icons.arrow_drop_down,
+                    color: AppColors.neutral,
+                    size: 20,
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      );
+    });
+  }
+
+  Widget _buildCompanyDropdown() {
+    return Obx(() {
+      return DropdownButtonFormField<int?>(
+        value: controller.selectedCompanyId.value,
+        hint: Text('Select Company'),
+        isExpanded: true,
+        items: [
+          DropdownMenuItem<int?>(value: null, child: Text('All Companies')),
+          ...Get.find<CompanyController>().companies
+              .where((company) => company.isActive)
+              .map((company) {
+                return DropdownMenuItem<int?>(
+                  value: company.id,
+                  child: Text(company.name),
+                );
+              }),
+        ],
+        onChanged: (value) {
+          controller.selectedCompanyId.value = value;
+          controller.applyDateFilter();
+        },
+        decoration: InputDecoration(
+          prefixIcon: Icon(Icons.business, color: AppColors.primary),
+          border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.neutral.withOpacity(0.2)),
+          ),
+          enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.neutral.withOpacity(0.2)),
+          ),
+          focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(12),
+            borderSide: BorderSide(color: AppColors.primary, width: 2),
+          ),
+          filled: true,
+          fillColor: AppColors.background.withOpacity(0.5),
+        ),
+      );
+    });
+  }
+
   void _deleteInvoice(BuildContext context, int index) {
-    Invoice invoice = controller.invoices[index];
+    Invoice invoice = controller.filteredInvoices[index];
     showDialog(
       context: context,
       builder: (context) => Dialog(
