@@ -10,7 +10,6 @@ import '../controllers/ledger_controller.dart';
 import '../models/ledger_entry_model.dart';
 import '../services/ledger_report_service.dart';
 import '../../company/controllers/company_controller.dart';
-import '../../company/models/company_model.dart';
 
 class LedgerView extends StatelessWidget {
   final LedgerController controller = Get.put(LedgerController());
@@ -85,89 +84,6 @@ class LedgerView extends StatelessWidget {
     return Container(
       padding: EdgeInsets.all(ScreenUtils.setWidth(16)),
       child: _buildLedgerView(context),
-    );
-  }
-
-  Widget _buildCompanySelectionCard(BuildContext context, Company company) {
-    return StatefulBuilder(
-      builder: (context, setState) {
-        bool isHovered = false;
-        return InkWell(
-          onTap: () => controller.selectCompany(company.id),
-          onHover: (value) => setState(() => isHovered = value),
-          borderRadius: BorderRadius.circular(16),
-          child: AnimatedContainer(
-            duration: Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-            width: 200,
-            padding: EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: isHovered
-                    ? [
-                        AppColors.primary.withOpacity(0.1),
-                        AppColors.primary.withOpacity(0.05),
-                      ]
-                    : [
-                        AppColors.background,
-                        AppColors.background.withOpacity(0.8),
-                      ],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-              ),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: isHovered
-                    ? AppColors.primary.withOpacity(0.3)
-                    : AppColors.neutral.withOpacity(0.2),
-                width: 1,
-              ),
-              boxShadow: isHovered
-                  ? [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.2),
-                        blurRadius: 12,
-                        offset: Offset(0, 6),
-                      ),
-                    ]
-                  : [
-                      BoxShadow(
-                        color: AppColors.primary.withOpacity(0.1),
-                        blurRadius: 8,
-                        offset: Offset(0, 4),
-                      ),
-                    ],
-            ),
-            child: Column(
-              children: [
-                Icon(
-                  Icons.business,
-                  size: 32,
-                  color: isHovered ? AppColors.primary : AppColors.neutral,
-                ),
-                SizedBox(height: 12),
-                Text(
-                  company.name,
-                  style: AppStyles.bodyStyle.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.textPrimary,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                SizedBox(height: 4),
-                Text(
-                  company.type,
-                  style: AppStyles.bodyStyle.copyWith(
-                    fontSize: 12,
-                    color: AppColors.neutral,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-              ],
-            ),
-          ),
-        );
-      },
     );
   }
 
@@ -768,7 +684,7 @@ class LedgerView extends StatelessWidget {
                               Navigator.of(context).pop();
                             },
                           );
-                        }).toList(),
+                        }),
                       ],
                     ),
                   ),
@@ -935,7 +851,7 @@ class LedgerView extends StatelessWidget {
                             Navigator.of(context).pop();
                           },
                         );
-                      }).toList(),
+                      }),
                     ],
                   ),
                 ),
@@ -1219,7 +1135,7 @@ class LedgerView extends StatelessWidget {
                   _buildTypeDropdown(
                     context,
                     selectedType,
-                    (type) => selectedType = type,
+                    (type) => setState(() => selectedType = type),
                   ),
                   SizedBox(height: 16),
                   _buildFormField(
@@ -1714,16 +1630,16 @@ class LedgerView extends StatelessWidget {
     String? selectedType,
     Function(String?) onTypeChanged,
   ) {
-    String? localSelectedType = selectedType;
     return DropdownButtonFormField<String>(
-      value: localSelectedType,
+      value: selectedType,
       decoration: InputDecoration(
         labelText: 'Entry Type',
         border: OutlineInputBorder(),
       ),
-      items: ['All', 'Debit', 'Credit'].map((type) {
-        return DropdownMenuItem<String>(value: type, child: Text(type));
-      }).toList(),
+      items: [
+        DropdownMenuItem<String>(value: 'debit', child: Text('Debit')),
+        DropdownMenuItem<String>(value: 'credit', child: Text('Credit')),
+      ],
       onChanged: onTypeChanged,
     );
   }
