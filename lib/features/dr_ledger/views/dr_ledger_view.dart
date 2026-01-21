@@ -53,7 +53,12 @@ class DrLedgerView extends StatelessWidget {
     double totalSales = 0;
 
     for (var entry in entries) {
-      runningBalance += entry.debit - entry.credit;
+      // For advance payment, add calculated value; for sales, subtract sales amount
+      if (entry.debit > 0) {
+        runningBalance += entry.debit * 100 / 30;
+      } else if (entry.credit > 0) {
+        runningBalance -= entry.credit;
+      }
       totalAdvance += entry.debit;
       totalSales += entry.credit;
       rows.add({
@@ -61,7 +66,7 @@ class DrLedgerView extends StatelessWidget {
         'Description': entry.description,
         'Advance Payment': entry.debit > 0 ? formatCurrency(entry.debit) : '',
         'Sales': entry.credit > 0 ? formatCurrency(entry.credit) : '',
-        'Balance': 'Balance: ${formatCurrency(runningBalance)}',
+        'Balance': formatCurrency(runningBalance),
       });
     }
 
