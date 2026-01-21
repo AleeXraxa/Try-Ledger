@@ -35,6 +35,99 @@ class DashboardView extends StatelessWidget {
                 child: FadeInAnimation(child: widget),
               ),
               children: [
+                // Welcome Message
+                Container(
+                  width: double.infinity,
+                  padding: EdgeInsets.symmetric(vertical: 32, horizontal: 24),
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [
+                        AppColors.primary.withOpacity(0.15),
+                        AppColors.primary.withOpacity(0.08),
+                        AppColors.accent.withOpacity(0.05),
+                      ],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    borderRadius: BorderRadius.circular(24),
+                    border: Border.all(
+                      color: AppColors.primary.withOpacity(0.3),
+                      width: 1.5,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withOpacity(0.1),
+                        blurRadius: 20,
+                        offset: Offset(0, 8),
+                        spreadRadius: 0,
+                      ),
+                      BoxShadow(
+                        color: AppColors.accent.withOpacity(0.05),
+                        blurRadius: 40,
+                        offset: Offset(0, 16),
+                        spreadRadius: 0,
+                      ),
+                    ],
+                  ),
+                  child: Column(
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            width: 6,
+                            height: 32,
+                            decoration: BoxDecoration(
+                              gradient: LinearGradient(
+                                colors: [AppColors.primary, AppColors.accent],
+                                begin: Alignment.topCenter,
+                                end: Alignment.bottomCenter,
+                              ),
+                              borderRadius: BorderRadius.circular(3),
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Icon(
+                            Icons.waving_hand,
+                            color: AppColors.primary,
+                            size: 28,
+                          ),
+                          SizedBox(width: 16),
+                          Text(
+                            'Welcome back',
+                            style: AppStyles.headingStyle.copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w500,
+                              color: AppColors.textPrimary,
+                            ),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 12),
+                      Text(
+                        'Waseem Ali Abbasi',
+                        style: AppStyles.headingStyle.copyWith(
+                          fontSize: 32,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.primary,
+                          letterSpacing: -0.5,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      SizedBox(height: 8),
+                      Text(
+                        'Ready to manage your business today?',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontSize: 16,
+                          color: AppColors.neutral,
+                          fontWeight: FontWeight.w400,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 24),
                 // Doctor Performance Section
                 Obx(() {
                   return Container(
