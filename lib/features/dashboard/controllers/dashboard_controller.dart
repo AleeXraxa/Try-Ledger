@@ -107,9 +107,9 @@ class DashboardController extends GetxController {
 
     for (var entry in drLedgerController.drLedgerEntries) {
       String? doctorName;
-      if (entry.companyId != null) {
+      if (entry.doctorId != null) {
         final doctor = doctorController.doctors.firstWhereOrNull(
-          (d) => d.id == entry.companyId,
+          (d) => d.id == entry.doctorId,
         );
         doctorName = doctor?.name;
       }

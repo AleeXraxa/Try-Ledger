@@ -1,12 +1,12 @@
 import 'package:get/get.dart';
-import '../../ledger/models/ledger_entry_model.dart';
+import '../models/dr_ledger_entry_model.dart';
 import '../services/dr_ledger_service.dart';
 
 class DrLedgerController extends GetxController {
   final DrLedgerService _service = DrLedgerService();
 
-  var drLedgerEntries = <LedgerEntry>[].obs;
-  var filteredEntries = <LedgerEntry>[].obs;
+  var drLedgerEntries = <DrLedgerEntry>[].obs;
+  var filteredEntries = <DrLedgerEntry>[].obs;
   var fromDate = Rxn<DateTime>();
   var toDate = Rxn<DateTime>();
   var selectedDoctorId = Rxn<int>();
@@ -24,7 +24,7 @@ class DrLedgerController extends GetxController {
     filteredEntries.value = drLedgerEntries;
   }
 
-  Future<void> addDrLedgerEntry(LedgerEntry entry) async {
+  Future<void> addDrLedgerEntry(DrLedgerEntry entry) async {
     await _service.addDrLedgerEntry(entry);
     drLedgerEntries.add(entry);
     drLedgerEntries.sort((a, b) => a.date.compareTo(b.date));
@@ -33,7 +33,7 @@ class DrLedgerController extends GetxController {
     }
   }
 
-  Future<void> updateDrLedgerEntry(LedgerEntry entry) async {
+  Future<void> updateDrLedgerEntry(DrLedgerEntry entry) async {
     await _service.updateDrLedgerEntry(entry);
     int index = drLedgerEntries.indexWhere((e) => e.id == entry.id);
     if (index != -1) {
@@ -62,7 +62,7 @@ class DrLedgerController extends GetxController {
     filteredEntries.value = drLedgerEntries.where((entry) {
       bool matchesDoctor =
           selectedDoctorId.value == null ||
-          entry.companyId == selectedDoctorId.value;
+          entry.doctorId == selectedDoctorId.value;
 
       bool matchesFromDate =
           fromDate.value == null ||

@@ -4,6 +4,8 @@ class DrLedgerEntry {
   final double debit;
   final double credit;
   final DateTime date;
+  final int? doctorId;
+  final double? rate;
 
   DrLedgerEntry({
     required this.id,
@@ -11,6 +13,8 @@ class DrLedgerEntry {
     required this.debit,
     required this.credit,
     required this.date,
+    this.doctorId,
+    this.rate,
   });
 
   factory DrLedgerEntry.fromJson(Map<String, dynamic> json) {
@@ -20,6 +24,8 @@ class DrLedgerEntry {
       debit: json['debit'],
       credit: json['credit'],
       date: DateTime.parse(json['date']),
+      doctorId: json['doctorId'] as int?,
+      rate: json['rate'] != null ? (json['rate'] as num).toDouble() : null,
     );
   }
 
@@ -30,6 +36,8 @@ class DrLedgerEntry {
       'debit': debit,
       'credit': credit,
       'date': date.toIso8601String(),
+      'doctorId': doctorId,
+      'rate': rate,
     };
   }
 }

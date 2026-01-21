@@ -12,7 +12,7 @@ import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
 import '../controllers/dr_ledger_controller.dart';
 import '../controllers/doctor_controller.dart';
-import '../../ledger/models/ledger_entry_model.dart';
+import '../models/dr_ledger_entry_model.dart';
 import 'add_doctor_dialog.dart';
 import 'add_dr_entry_dialog.dart';
 import 'view_all_doctors_dialog.dart';
@@ -22,7 +22,7 @@ class DrLedgerView extends StatelessWidget {
   final DoctorController doctorController = Get.put(DoctorController());
 
   List<Map<String, String>> _buildDrLedgerRows(
-    List<LedgerEntry> entries,
+    List<DrLedgerEntry> entries,
     double openingBalance,
   ) {
     List<Map<String, String>> rows = [];
@@ -45,7 +45,7 @@ class DrLedgerView extends StatelessWidget {
         'Description': 'Opening Balance',
         'Advance Payment': '',
         'Sales': '',
-        'Balance': formatCurrency(openingBalance),
+        'Balance': 'Opening: ${formatCurrency(openingBalance)}',
       });
     }
 
@@ -54,18 +54,14 @@ class DrLedgerView extends StatelessWidget {
 
     for (var entry in entries) {
       runningBalance += entry.debit - entry.credit;
-      if (entry.rate != null) {
-        totalAdvance += entry.rate!;
-      }
+      totalAdvance += entry.debit;
       totalSales += entry.credit;
       rows.add({
         'Date': formatDate(entry.date),
         'Description': entry.description,
-        'Advance Payment': entry.rate != null
-            ? formatCurrency(entry.rate!)
-            : '',
+        'Advance Payment': entry.debit > 0 ? formatCurrency(entry.debit) : '',
         'Sales': entry.credit > 0 ? formatCurrency(entry.credit) : '',
-        'Balance': formatCurrency(runningBalance),
+        'Balance': 'Balance: ${formatCurrency(runningBalance)}',
       });
     }
 
@@ -946,7 +942,7 @@ class DrLedgerView extends StatelessWidget {
     );
   }
 
-  void _showAddEntryDialog(BuildContext context, [LedgerEntry? entry]) {
+  void _showAddEntryDialog(BuildContext context, [DrLedgerEntry? entry]) {
     final TextEditingController descriptionController = TextEditingController();
     final TextEditingController amountController = TextEditingController();
     DateTime selectedDate = DateTime.now();
@@ -1081,12 +1077,16 @@ class DrLedgerView extends StatelessWidget {
                         return;
                       }
                       // Add entry logic
-                      final updatedEntry = LedgerEntry(
+                      final updatedEntry = DrLedgerEntry(
                         id: entry?.id ?? DateTime.now().millisecondsSinceEpoch,
                         description: descriptionController.text,
                         debit: selectedType == 'debit' ? amount! : 0,
                         credit: selectedType == 'credit' ? amount! : 0,
                         date: selectedDate,
+                        rate: selectedType == 'debit' ? amount! : null,
+                      );
+                      print(
+                        'Dr Ledger Entry: Type=${selectedType}, Amount=${amount}',
                       );
                       if (entry == null) {
                         await controller.addDrLedgerEntry(updatedEntry);
@@ -1152,7 +1152,7 @@ class DrLedgerView extends StatelessWidget {
     );
   }
 
-  void _showEntryDetailsDialog(BuildContext context, LedgerEntry entry) {
+  void _showEntryDetailsDialog(BuildContext context, DrLedgerEntry entry) {
     showDialog(
       context: context,
       builder: (context) => Dialog(
@@ -1496,12 +1496,14 @@ class DrLedgerView extends StatelessWidget {
     int? doctorId,
   ) async {
     // Filter entries for the date range and doctor
-    List<LedgerEntry> reportEntries = controller.drLedgerEntries.where((entry) {
+    List<DrLedgerEntry> reportEntries = controller.drLedgerEntries.where((
+      entry,
+    ) {
       bool matchesDate =
           entry.date.isAtSameMomentAs(fromDate) ||
           entry.date.isAfter(fromDate) &&
               entry.date.isBefore(toDate.add(Duration(days: 1)));
-      bool matchesDoctor = doctorId == null || entry.companyId == doctorId;
+      bool matchesDoctor = doctorId == null || entry.doctorId == doctorId;
       return matchesDate && matchesDoctor;
     }).toList()..sort((a, b) => a.date.compareTo(b.date));
 

@@ -4,6 +4,7 @@ import '../controllers/layout_controller.dart';
 import '../constants/app_colors.dart';
 import '../constants/app_styles.dart';
 import '../utils/screen_utils.dart';
+import '../utils/database_helper.dart';
 
 class Sidebar extends StatelessWidget {
   final LayoutController controller = Get.put(LayoutController());
@@ -113,6 +114,8 @@ class Sidebar extends StatelessWidget {
                 },
               ),
             ),
+            SizedBox(height: 20),
+            _buildClearDataButton(),
           ],
         ),
       ),
@@ -219,6 +222,128 @@ class Sidebar extends StatelessWidget {
           ),
         );
       },
+    );
+  }
+
+  Widget _buildClearDataButton() {
+    return StatefulBuilder(
+      builder: (context, setState) {
+        bool isHovered = false;
+        return InkWell(
+          onTap: () => _showClearDataConfirmation(context),
+          onHover: (value) => setState(() => isHovered = value),
+          borderRadius: BorderRadius.circular(12),
+          child: AnimatedContainer(
+            duration: Duration(milliseconds: 300),
+            curve: Curves.easeOut,
+            margin: EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            padding: EdgeInsets.symmetric(
+              vertical: 12,
+              horizontal: controller.isCollapsed ? 8 : 12,
+            ),
+            decoration: BoxDecoration(
+              gradient: isHovered
+                  ? LinearGradient(
+                      colors: [
+                        Colors.red.withOpacity(0.2),
+                        Colors.red.withOpacity(0.1),
+                      ],
+                    )
+                  : null,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: isHovered
+                    ? Colors.red.withOpacity(0.3)
+                    : Colors.red.withOpacity(0.2),
+                width: 1,
+              ),
+            ),
+            child: Row(
+              children: [
+                AnimatedContainer(
+                  duration: Duration(milliseconds: 300),
+                  width: 36,
+                  height: 36,
+                  decoration: BoxDecoration(
+                    color: isHovered
+                        ? Colors.red.withOpacity(0.2)
+                        : Colors.red.withOpacity(0.1),
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Icon(
+                    Icons.delete_forever,
+                    color: isHovered ? Colors.red : Colors.redAccent,
+                    size: 18,
+                  ),
+                ),
+                if (!controller.isCollapsed) ...[
+                  SizedBox(width: 12),
+                  Expanded(
+                    child: AnimatedDefaultTextStyle(
+                      duration: Duration(milliseconds: 200),
+                      style: AppStyles.bodyStyle.copyWith(
+                        color: isHovered ? Colors.red : Colors.redAccent,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      child: Text('Clear Data'),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  void _showClearDataConfirmation(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        title: Text(
+          'Clear All Data',
+          style: AppStyles.headingStyle.copyWith(color: Colors.red),
+        ),
+        content: Text(
+          'This will permanently delete all data from the database. This action cannot be undone. Are you sure?',
+          style: AppStyles.bodyStyle,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Cancel',
+              style: AppStyles.bodyStyle.copyWith(
+                color: AppColors.neutral,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+          TextButton(
+            onPressed: () async {
+              Navigator.of(context).pop();
+              await DatabaseHelper().clearAllData();
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text(
+                    'All data has been cleared. Please restart the app.',
+                  ),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+            child: Text(
+              'Clear Data',
+              style: AppStyles.bodyStyle.copyWith(
+                color: Colors.red,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

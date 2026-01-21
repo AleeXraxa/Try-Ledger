@@ -4,7 +4,7 @@ import '../../../constants/app_styles.dart';
 import '../../../constants/app_colors.dart';
 import '../controllers/dr_ledger_controller.dart';
 import '../controllers/doctor_controller.dart';
-import '../../ledger/models/ledger_entry_model.dart';
+import '../models/dr_ledger_entry_model.dart';
 
 class AddDrEntryDialog extends StatefulWidget {
   @override
@@ -72,16 +72,14 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
       return;
     }
 
-    final entry = LedgerEntry(
+    print('Dr Ledger Entry: Type=${selectedType}, Amount=${amount}');
+    final entry = DrLedgerEntry(
       id: DateTime.now().millisecondsSinceEpoch,
       description: descriptionController.text.trim(),
-      debit: selectedType == 'Advance Payment'
-          ? (calculatedBusinessValue ?? amount!)
-          : 0,
+      debit: selectedType == 'Advance Payment' ? amount! : 0,
       credit: selectedType == 'Sales' ? amount! : 0,
       date: selectedDate,
-      companyId: selectedDoctorId, // Using companyId as doctorId
-      rate: selectedType == 'Advance Payment' ? amount : null,
+      doctorId: selectedDoctorId,
     );
 
     controller

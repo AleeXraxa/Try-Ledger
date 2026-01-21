@@ -7,6 +7,7 @@ import '../features/inventory/models/product_model.dart';
 import '../features/inventory/models/invoice_model.dart';
 import '../features/company/models/company_model.dart';
 import '../features/dr_ledger/models/doctor_model.dart';
+import '../features/dr_ledger/models/dr_ledger_entry_model.dart';
 
 class DatabaseHelper {
   static final DatabaseHelper _instance = DatabaseHelper._internal();
@@ -27,7 +28,7 @@ class DatabaseHelper {
     String path = join(documentsDirectory.path, 'TryLedger.db');
     Database db = await openDatabase(
       path,
-      version: 10,
+      version: 12,
       onCreate: _onCreate,
       onUpgrade: _onUpgrade,
     );
@@ -184,6 +185,18 @@ class DatabaseHelper {
           isActive INTEGER DEFAULT 1
         )
       ''');
+
+      // Create dr_ledger_entries table
+      await db.execute('''
+        CREATE TABLE dr_ledger_entries (
+          id INTEGER PRIMARY KEY,
+          description TEXT NOT NULL,
+          debit REAL NOT NULL,
+          credit REAL NOT NULL,
+          date TEXT NOT NULL,
+          doctorId INTEGER
+        )
+      ''');
     }
     // isActive column already exists in company table
   }
@@ -239,6 +252,36 @@ class DatabaseHelper {
       }
     } catch (e) {
       // Column might already exist, ignore
+    }
+
+    // Ensure dr_ledger_entries table exists
+    try {
+      await db.execute('''
+        CREATE TABLE dr_ledger_entries (
+          id INTEGER PRIMARY KEY,
+          description TEXT NOT NULL,
+          debit REAL NOT NULL,
+          credit REAL NOT NULL,
+          date TEXT NOT NULL,
+          doctorId INTEGER,
+          rate REAL
+        )
+      ''');
+    } catch (e) {
+      // Table might already exist, check if rate column exists
+      List<Map<String, dynamic>> columns = await db.rawQuery(
+        "PRAGMA table_info(dr_ledger_entries)",
+      );
+      bool hasRate = columns.any((col) => col['name'] == 'rate');
+      if (!hasRate) {
+        try {
+          await db.execute(
+            'ALTER TABLE dr_ledger_entries ADD COLUMN rate REAL',
+          );
+        } catch (e) {
+          // Column might already exist
+        }
+      }
     }
   }
 
@@ -424,6 +467,37 @@ class DatabaseHelper {
     await db.delete('doctors', where: 'id = ?', whereArgs: [id]);
   }
 
+  // DrLedgerEntry methods
+  Future<List<DrLedgerEntry>> getDrLedgerEntries() async {
+    Database db = await database;
+    List<Map<String, dynamic>> maps = await db.query('dr_ledger_entries');
+    return List.generate(maps.length, (i) {
+      return DrLedgerEntry.fromJson(maps[i]);
+    });
+  }
+
+  Future<void> insertDrLedgerEntry(DrLedgerEntry entry) async {
+    Database db = await database;
+    Map<String, dynamic> data = entry.toJson();
+    data.remove('id');
+    await db.insert('dr_ledger_entries', data);
+  }
+
+  Future<void> updateDrLedgerEntry(DrLedgerEntry entry) async {
+    Database db = await database;
+    await db.update(
+      'dr_ledger_entries',
+      entry.toJson(),
+      where: 'id = ?',
+      whereArgs: [entry.id],
+    );
+  }
+
+  Future<void> deleteDrLedgerEntry(int id) async {
+    Database db = await database;
+    await db.delete('dr_ledger_entries', where: 'id = ?', whereArgs: [id]);
+  }
+
   // Backup method
   Future<Map<String, dynamic>> exportAllData() async {
     Database db = await database;
@@ -434,9 +508,12 @@ class DatabaseHelper {
     List<Map<String, dynamic>> invoices = await db.query('invoices');
     List<Map<String, dynamic>> companies = await db.query('company');
     List<Map<String, dynamic>> doctors = await db.query('doctors');
+    List<Map<String, dynamic>> drLedgerEntries = await db.query(
+      'dr_ledger_entries',
+    );
 
     return {
-      'version': 10,
+      'version': 11,
       'exported_at': DateTime.now().toIso8601String(),
       'data': {
         'ledger_entries': ledgerEntries,
@@ -444,8 +521,20 @@ class DatabaseHelper {
         'invoices': invoices,
         'companies': companies,
         'doctors': doctors,
+        'dr_ledger_entries': drLedgerEntries,
       },
     };
+  }
+
+  // Clear all data method
+  Future<void> clearAllData() async {
+    Database db = await database;
+    await db.delete('ledger_entries');
+    await db.delete('products');
+    await db.delete('invoices');
+    await db.delete('company');
+    await db.delete('doctors');
+    await db.delete('dr_ledger_entries');
   }
 
   // Restore method
@@ -458,6 +547,7 @@ class DatabaseHelper {
     await db.delete('invoices');
     await db.delete('company');
     await db.delete('doctors');
+    await db.delete('dr_ledger_entries');
 
     // Import ledger entries
     if (backupData['data']['ledger_entries'] != null) {
