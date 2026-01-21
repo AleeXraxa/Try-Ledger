@@ -73,6 +73,9 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
     }
 
     print('Dr Ledger Entry: Type=${selectedType}, Amount=${amount}');
+    print(
+      'Dr Entry - Type: $selectedType, Amount: $amount, Doctor ID: $selectedDoctorId',
+    );
     final entry = DrLedgerEntry(
       id: DateTime.now().millisecondsSinceEpoch,
       description: descriptionController.text.trim(),
