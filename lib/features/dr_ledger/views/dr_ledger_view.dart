@@ -1684,7 +1684,11 @@ class DrLedgerView extends StatelessWidget {
                     ),
                   // Entries
                   ...reportEntries.map((entry) {
-                    openingBalance += entry.debit - entry.credit;
+                    if (entry.debit > 0) {
+                      openingBalance += entry.debit * 100 / 30;
+                    } else if (entry.credit > 0) {
+                      openingBalance -= entry.credit;
+                    }
                     return pw.TableRow(
                       children: [
                         pw.Container(
