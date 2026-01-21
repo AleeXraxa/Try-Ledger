@@ -61,7 +61,8 @@ class DatabaseHelper {
         name TEXT NOT NULL,
         price REAL NOT NULL,
         stock INTEGER NOT NULL,
-        category TEXT
+        category TEXT,
+        companyId INTEGER
       )
     ''');
 
@@ -72,7 +73,34 @@ class DatabaseHelper {
         reference TEXT NOT NULL,
         date TEXT NOT NULL,
         items TEXT NOT NULL,
-        total REAL NOT NULL
+        total REAL NOT NULL,
+        companyId INTEGER
+      )
+    ''');
+
+    // Create company table
+    await db.execute('''
+      CREATE TABLE company (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        type TEXT NOT NULL DEFAULT "",
+        address TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT NOT NULL,
+        isActive INTEGER DEFAULT 1
+      )
+    ''');
+
+    // Create doctors table
+    await db.execute('''
+      CREATE TABLE doctors (
+        id INTEGER PRIMARY KEY,
+        name TEXT NOT NULL,
+        specialization TEXT NOT NULL,
+        address TEXT NOT NULL,
+        phone TEXT NOT NULL,
+        email TEXT NOT NULL,
+        isActive INTEGER DEFAULT 1
       )
     ''');
   }
@@ -191,6 +219,23 @@ class DatabaseHelper {
     try {
       if (!hasRate) {
         await db.execute('ALTER TABLE ledger_entries ADD COLUMN rate REAL');
+      }
+    } catch (e) {
+      // Column might already exist, ignore
+    }
+
+    // Check if isActive column exists in company table
+    List<Map<String, dynamic>> companyColumns = await db.rawQuery(
+      "PRAGMA table_info(company)",
+    );
+
+    bool hasIsActive = companyColumns.any((col) => col['name'] == 'isActive');
+
+    try {
+      if (!hasIsActive) {
+        await db.execute(
+          'ALTER TABLE company ADD COLUMN isActive INTEGER DEFAULT 1',
+        );
       }
     } catch (e) {
       // Column might already exist, ignore

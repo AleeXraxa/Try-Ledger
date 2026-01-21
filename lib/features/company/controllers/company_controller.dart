@@ -19,7 +19,7 @@ class CompanyController extends GetxController {
 
   Future<void> addCompany(Company company) async {
     await _service.addCompany(company);
-    companies.add(company);
+    loadCompanies();
   }
 
   Future<void> updateCompany(Company company) async {
