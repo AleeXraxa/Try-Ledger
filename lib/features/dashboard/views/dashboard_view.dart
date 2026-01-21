@@ -106,7 +106,7 @@ class DashboardView extends StatelessWidget {
                           _buildQuickActionButton(
                             'Add Company Ledger Entry',
                             Icons.add,
-                            () => _showAddEntryDialog(context),
+                            () => layoutController.selectIndex(2),
                           ),
                           _buildQuickActionButton(
                             'Add Product',
