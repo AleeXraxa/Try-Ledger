@@ -23,12 +23,27 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
   String? descriptionError;
   String? amountError;
   String? doctorError;
+  double? calculatedBusinessValue;
 
   @override
   void dispose() {
     descriptionController.dispose();
     amountController.dispose();
     super.dispose();
+  }
+
+  void _calculateBusinessValue() {
+    if (selectedType == 'Advance Payment') {
+      double? amount = double.tryParse(amountController.text);
+      if (amount != null && amount > 0) {
+        calculatedBusinessValue = amount * 100 / 30;
+      } else {
+        calculatedBusinessValue = null;
+      }
+    } else {
+      calculatedBusinessValue = null;
+    }
+    setState(() {});
   }
 
   void _submitForm() {
@@ -60,10 +75,13 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
     final entry = LedgerEntry(
       id: DateTime.now().millisecondsSinceEpoch,
       description: descriptionController.text.trim(),
-      debit: selectedType == 'Advance Payment' ? amount! : 0,
+      debit: selectedType == 'Advance Payment'
+          ? (calculatedBusinessValue ?? amount!)
+          : 0,
       credit: selectedType == 'Sales' ? amount! : 0,
       date: selectedDate,
       companyId: selectedDoctorId, // Using companyId as doctorId
+      rate: selectedType == 'Advance Payment' ? amount : null,
     );
 
     controller
@@ -159,7 +177,18 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
               '0.00',
               keyboardType: TextInputType.number,
               errorText: amountError,
+              onChanged: (value) => _calculateBusinessValue(),
             ),
+            if (calculatedBusinessValue != null) ...[
+              SizedBox(height: 8),
+              Text(
+                'Calculated Business Value: ${calculatedBusinessValue!.toStringAsFixed(2)}',
+                style: AppStyles.bodyStyle.copyWith(
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                ),
+              ),
+            ],
             SizedBox(height: 16),
             _buildDoctorDropdown(errorText: doctorError),
             SizedBox(height: 16),
@@ -184,6 +213,7 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
     String hint, {
     TextInputType keyboardType = TextInputType.text,
     String? errorText,
+    Function(String)? onChanged,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -199,6 +229,7 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
         TextField(
           controller: controller,
           keyboardType: keyboardType,
+          onChanged: onChanged,
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: Icon(icon, color: AppColors.primary),
@@ -248,6 +279,7 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
           onChanged: (value) {
             setState(() {
               selectedType = value!;
+              _calculateBusinessValue();
             });
           },
           decoration: InputDecoration(

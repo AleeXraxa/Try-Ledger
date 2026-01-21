@@ -43,24 +43,28 @@ class DrLedgerView extends StatelessWidget {
       rows.add({
         'Date': openingDate,
         'Description': 'Opening Balance',
-        'Debit': '',
-        'Credit': '',
+        'Advance Payment': '',
+        'Sales': '',
         'Balance': formatCurrency(openingBalance),
       });
     }
 
-    double totalDebit = 0;
-    double totalCredit = 0;
+    double totalAdvance = 0;
+    double totalSales = 0;
 
     for (var entry in entries) {
       runningBalance += entry.debit - entry.credit;
-      totalDebit += entry.debit;
-      totalCredit += entry.credit;
+      if (entry.rate != null) {
+        totalAdvance += entry.rate!;
+      }
+      totalSales += entry.credit;
       rows.add({
         'Date': formatDate(entry.date),
         'Description': entry.description,
-        'Debit': entry.debit > 0 ? formatCurrency(entry.debit) : '',
-        'Credit': entry.credit > 0 ? formatCurrency(entry.credit) : '',
+        'Advance Payment': entry.rate != null
+            ? formatCurrency(entry.rate!)
+            : '',
+        'Sales': entry.credit > 0 ? formatCurrency(entry.credit) : '',
         'Balance': formatCurrency(runningBalance),
       });
     }
@@ -69,8 +73,8 @@ class DrLedgerView extends StatelessWidget {
     rows.add({
       'Date': '',
       'Description': 'TOTALS',
-      'Debit': totalDebit > 0 ? formatCurrency(totalDebit) : '',
-      'Credit': totalCredit > 0 ? formatCurrency(totalCredit) : '',
+      'Advance Payment': totalAdvance > 0 ? formatCurrency(totalAdvance) : '',
+      'Sales': totalSales > 0 ? formatCurrency(totalSales) : '',
       'Balance': 'Closing Balance: ${formatCurrency(runningBalance)}',
     });
 
@@ -303,8 +307,8 @@ class DrLedgerView extends StatelessWidget {
                       columns: [
                         'Date',
                         'Description',
-                        'Debit',
-                        'Credit',
+                        'Advance Payment',
+                        'Sales',
                         'Balance',
                       ],
                       columnTypes: [
