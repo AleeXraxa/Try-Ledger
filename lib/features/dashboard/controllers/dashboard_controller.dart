@@ -8,6 +8,7 @@ import '../../ledger/controllers/ledger_controller.dart';
 import '../../inventory/controllers/inventory_controller.dart';
 import '../../dr_ledger/controllers/dr_ledger_controller.dart';
 import '../../dr_ledger/controllers/doctor_controller.dart';
+import '../../dr_ledger/models/doctor_model.dart';
 
 class DashboardController extends GetxController {
   final DashboardService _service = DashboardService();
@@ -36,6 +37,16 @@ class DashboardController extends GetxController {
   // Invoices
   var invoices = <Invoice>[].obs;
 
+  // Doctor performance
+  var bestDoctor = Rxn<Doctor>();
+  var worstDoctor = Rxn<Doctor>();
+  var bestDoctorBusinessValue = 0.0.obs;
+  var bestDoctorSales = 0.0.obs;
+  var bestDoctorClosingBalance = 0.0.obs;
+  var worstDoctorBusinessValue = 0.0.obs;
+  var worstDoctorSales = 0.0.obs;
+  var worstDoctorClosingBalance = 0.0.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -46,10 +57,12 @@ class DashboardController extends GetxController {
     final ledgerController = Get.find<LedgerController>();
     final inventoryController = Get.find<InventoryController>();
     final drLedgerController = Get.find<DrLedgerController>();
+    final doctorController = Get.find<DoctorController>();
     ever(ledgerController.ledgerEntries, (_) => loadData());
     ever(inventoryController.products, (_) => loadData());
     ever(inventoryController.invoices, (_) => loadData());
     ever(drLedgerController.drLedgerEntries, (_) => loadData());
+    ever(doctorController.doctors, (_) => loadData());
     loadData();
   }
 
@@ -185,5 +198,99 @@ class DashboardController extends GetxController {
 
     // Invoices
     invoices.value = inventoryController.invoices;
+
+    // Calculate doctor performance
+    _calculateDoctorPerformance();
+  }
+
+  void _calculateDoctorPerformance() {
+    final drLedgerController = Get.find<DrLedgerController>();
+    final doctorController = Get.find<DoctorController>();
+
+    // Calculate business value and closing balance for each doctor
+    Map<int, double> doctorBusinessValues = {};
+    Map<int, double> doctorClosingBalances = {};
+
+    for (var doctor in doctorController.doctors) {
+      double totalAdvanceCalculated = 0.0;
+      double runningBalance = 0.0;
+      // Sort entries by date for this doctor
+      var doctorEntries =
+          drLedgerController.drLedgerEntries
+              .where((entry) => entry.doctorId == doctor.id)
+              .toList()
+            ..sort((a, b) => a.date.compareTo(b.date));
+
+      for (var entry in doctorEntries) {
+        if (entry.debit > 0) {
+          double calculatedAmount = entry.debit * 100 / 30;
+          totalAdvanceCalculated += calculatedAmount;
+          runningBalance += calculatedAmount;
+        } else if (entry.credit > 0) {
+          runningBalance -= entry.credit;
+        }
+      }
+      doctorBusinessValues[doctor.id] = totalAdvanceCalculated;
+      doctorClosingBalances[doctor.id] = runningBalance;
+    }
+
+    // Aggregate sales (credits) for ranking
+    Map<int, double> doctorSales = {};
+    for (var entry in drLedgerController.drLedgerEntries) {
+      if (entry.doctorId != null) {
+        doctorSales[entry.doctorId!] =
+            (doctorSales[entry.doctorId!] ?? 0) + entry.credit;
+      }
+    }
+
+    // Find best and worst doctors based on criteria: highest/lowest business value and sales
+    Doctor? bestDoc;
+    Doctor? worstDoc;
+    double bestBusinessValue = double.negativeInfinity;
+    double bestSales = double.negativeInfinity;
+    double worstBusinessValue = double.infinity;
+    double worstSales = double.infinity;
+
+    for (var doctor in doctorController.doctors) {
+      double businessValue = doctorBusinessValues[doctor.id] ?? 0;
+      double sales = doctorSales[doctor.id] ?? 0;
+
+      // For best: highest business value, then highest sales
+      if (businessValue > bestBusinessValue ||
+          (businessValue == bestBusinessValue && sales > bestSales)) {
+        bestBusinessValue = businessValue;
+        bestSales = sales;
+        bestDoc = doctor;
+      }
+
+      // For worst: lowest business value, then lowest sales
+      if (businessValue < worstBusinessValue ||
+          (businessValue == worstBusinessValue && sales < worstSales)) {
+        worstBusinessValue = businessValue;
+        worstSales = sales;
+        worstDoc = doctor;
+      }
+    }
+
+    bestDoctor.value = bestDoc;
+    worstDoctor.value = worstDoc;
+    bestDoctorBusinessValue.value = bestDoc != null
+        ? (doctorBusinessValues[bestDoc.id] ?? 0)
+        : 0;
+    bestDoctorSales.value = bestDoc != null
+        ? (doctorSales[bestDoc.id] ?? 0)
+        : 0;
+    bestDoctorClosingBalance.value = bestDoc != null
+        ? (doctorClosingBalances[bestDoc.id] ?? 0)
+        : 0;
+    worstDoctorBusinessValue.value = worstDoc != null
+        ? (doctorBusinessValues[worstDoc.id] ?? 0)
+        : 0;
+    worstDoctorSales.value = worstDoc != null
+        ? (doctorSales[worstDoc.id] ?? 0)
+        : 0;
+    worstDoctorClosingBalance.value = worstDoc != null
+        ? (doctorClosingBalances[worstDoc.id] ?? 0)
+        : 0;
   }
 }

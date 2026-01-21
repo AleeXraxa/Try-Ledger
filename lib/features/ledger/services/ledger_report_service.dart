@@ -234,7 +234,7 @@ class LedgerReportService {
                       ),
                     ],
                   ),
-                  if (openingBalance != 0)
+                  if (openingBalance != 0 || reportEntries.isNotEmpty)
                     pw.TableRow(
                       children: [
                         pw.Container(
