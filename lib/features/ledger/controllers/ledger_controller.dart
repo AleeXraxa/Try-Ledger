@@ -110,6 +110,13 @@ class LedgerController extends GetxController {
     applyFilters();
   }
 
+  Future<void> deleteLedgerEntriesByReference(String referenceNo) async {
+    await _service.deleteLedgerEntriesByReference(referenceNo);
+    ledgerEntries.removeWhere((e) => e.referenceNo == referenceNo);
+    // Reapply filters to update filteredEntries
+    applyFilters();
+  }
+
   void applyDateFilter() {
     applyFilters();
   }

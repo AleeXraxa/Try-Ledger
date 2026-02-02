@@ -12,6 +12,7 @@ import 'add_product_dialog.dart';
 import 'purchase_dialog.dart';
 import 'invoice_details_dialog.dart';
 import 'view_all_products_dialog.dart';
+import 'edit_invoice_dialog.dart';
 
 class InventoryView extends StatelessWidget {
   final InventoryController controller = Get.put(InventoryController());
@@ -491,6 +492,27 @@ class InventoryView extends StatelessWidget {
                                       InvoiceDetailsDialog(invoice: invoice),
                                 ),
                                 tooltip: 'View',
+                                iconSize: 20,
+                                padding: EdgeInsets.all(8),
+                              ),
+                            ),
+                            Container(
+                              margin: EdgeInsets.only(right: 8),
+                              decoration: BoxDecoration(
+                                color: Colors.orange.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: IconButton(
+                                icon: Icon(
+                                  Icons.edit_outlined,
+                                  color: Colors.orange,
+                                ),
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) =>
+                                      EditInvoiceDialog(invoice: invoice),
+                                ),
+                                tooltip: 'Edit',
                                 iconSize: 20,
                                 padding: EdgeInsets.all(8),
                               ),
