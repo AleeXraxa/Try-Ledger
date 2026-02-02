@@ -15,7 +15,6 @@ class ViewAllDoctorsDialog extends StatelessWidget {
       backgroundColor: Colors.transparent,
       child: Container(
         width: 800,
-        height: 600,
         padding: EdgeInsets.all(24),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -73,7 +72,11 @@ class ViewAllDoctorsDialog extends StatelessWidget {
               ],
             ),
             SizedBox(height: 24),
-            Expanded(child: Obx(() => _buildDoctorsTable())),
+            Expanded(
+              child: SingleChildScrollView(
+                child: Obx(() => _buildDoctorsTable()),
+              ),
+            ),
           ],
         ),
       ),
