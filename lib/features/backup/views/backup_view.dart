@@ -276,6 +276,28 @@ class BackupView extends StatelessWidget {
     );
   }
 
+  Widget _buildInfoRow(String label, String value) {
+    return Padding(
+      padding: EdgeInsets.symmetric(vertical: 4),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: AppStyles.bodyStyle.copyWith(color: AppColors.neutral),
+          ),
+          Text(
+            value,
+            style: AppStyles.bodyStyle.copyWith(
+              fontWeight: FontWeight.w600,
+              color: AppColors.textPrimary,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Future<void> _createBackup(BuildContext context) async {
     try {
       // Show loading dialog
@@ -390,7 +412,11 @@ class BackupView extends StatelessWidget {
       return;
     }
 
-    // Show confirmation dialog
+    // Get backup info
+    final dbHelper = DatabaseHelper();
+    Map<String, dynamic> backupInfo = await dbHelper.getBackupInfo(backupData);
+
+    // Show backup details dialog
     bool? confirm = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
@@ -399,9 +425,62 @@ class BackupView extends StatelessWidget {
           'Restore Backup',
           style: AppStyles.headingStyle.copyWith(fontSize: 20),
         ),
-        content: Text(
-          'This will replace all current data with the backup data. This action cannot be undone. Are you sure you want to continue?',
-          style: AppStyles.bodyStyle,
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'Backup Information:',
+                style: AppStyles.bodyStyle.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 12),
+              _buildInfoRow('Version', backupInfo['version'].toString()),
+              _buildInfoRow(
+                'Exported At',
+                backupInfo['exported_at'].toString(),
+              ),
+              SizedBox(height: 8),
+              Text(
+                'Data Summary:',
+                style: AppStyles.bodyStyle.copyWith(
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+              SizedBox(height: 8),
+              _buildInfoRow(
+                'Ledger Entries',
+                backupInfo['ledger_entries_count'].toString(),
+              ),
+              _buildInfoRow(
+                'Products',
+                backupInfo['products_count'].toString(),
+              ),
+              _buildInfoRow(
+                'Invoices',
+                backupInfo['invoices_count'].toString(),
+              ),
+              _buildInfoRow(
+                'Companies',
+                backupInfo['companies_count'].toString(),
+              ),
+              _buildInfoRow('Doctors', backupInfo['doctors_count'].toString()),
+              _buildInfoRow(
+                'DR Ledger Entries',
+                backupInfo['dr_ledger_entries_count'].toString(),
+              ),
+              SizedBox(height: 16),
+              Text(
+                'This will replace all current data with backup data. This action cannot be undone.',
+                style: AppStyles.bodyStyle.copyWith(
+                  color: Colors.red,
+                  fontSize: 12,
+                ),
+              ),
+            ],
+          ),
         ),
         actions: [
           TextButton(

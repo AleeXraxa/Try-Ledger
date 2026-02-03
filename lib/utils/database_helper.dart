@@ -513,7 +513,7 @@ class DatabaseHelper {
     );
 
     return {
-      'version': 11,
+      'version': 12,
       'exported_at': DateTime.now().toIso8601String(),
       'data': {
         'ledger_entries': ledgerEntries,
@@ -540,6 +540,21 @@ class DatabaseHelper {
   // Restore method
   Future<void> importAllData(Map<String, dynamic> backupData) async {
     Database db = await database;
+
+    // Validate backup version
+    if (!backupData.containsKey('version')) {
+      throw Exception('Invalid backup file: missing version information');
+    }
+
+    int backupVersion = backupData['version'];
+    int currentVersion = 12; // Current backup version
+
+    if (backupVersion > currentVersion) {
+      throw Exception(
+        'Backup version ($backupVersion) is newer than current app version ($currentVersion). '
+        'Please update the app to restore this backup.',
+      );
+    }
 
     // Clear existing data
     await db.delete('ledger_entries');
@@ -597,5 +612,36 @@ class DatabaseHelper {
         await db.insert('doctors', doctor);
       }
     }
+
+    // Import dr_ledger_entries
+    if (backupData['data']['dr_ledger_entries'] != null) {
+      List<Map<String, dynamic>> drLedgerEntries =
+          List<Map<String, dynamic>>.from(
+            backupData['data']['dr_ledger_entries'],
+          );
+      for (var entry in drLedgerEntries) {
+        await db.insert('dr_ledger_entries', entry);
+      }
+    }
+
+    // Log restore completion
+    print('Backup restored successfully. Version: $backupVersion');
+  }
+
+  // Get backup info method
+  Future<Map<String, dynamic>> getBackupInfo(
+    Map<String, dynamic> backupData,
+  ) async {
+    Map<String, dynamic> data = backupData['data'] ?? {};
+    return {
+      'version': backupData['version'] ?? 'Unknown',
+      'exported_at': backupData['exported_at'] ?? 'Unknown',
+      'ledger_entries_count': data['ledger_entries']?.length ?? 0,
+      'products_count': data['products']?.length ?? 0,
+      'invoices_count': data['invoices']?.length ?? 0,
+      'companies_count': data['companies']?.length ?? 0,
+      'doctors_count': data['doctors']?.length ?? 0,
+      'dr_ledger_entries_count': data['dr_ledger_entries']?.length ?? 0,
+    };
   }
 }
