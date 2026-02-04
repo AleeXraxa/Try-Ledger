@@ -17,26 +17,36 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
 
   final TextEditingController descriptionController = TextEditingController();
   final TextEditingController amountController = TextEditingController();
+  final TextEditingController percentageController = TextEditingController(
+    text: '30',
+  );
   DateTime selectedDate = DateTime.now();
   String selectedType = 'Advance Payment';
   int? selectedDoctorId;
   String? descriptionError;
   String? amountError;
   String? doctorError;
+  String? percentageError;
   double? calculatedBusinessValue;
 
   @override
   void dispose() {
     descriptionController.dispose();
     amountController.dispose();
+    percentageController.dispose();
     super.dispose();
   }
 
   void _calculateBusinessValue() {
     if (selectedType == 'Advance Payment') {
       double? amount = double.tryParse(amountController.text);
-      if (amount != null && amount > 0) {
-        calculatedBusinessValue = amount * 100 / 30;
+      double? percentage = double.tryParse(percentageController.text);
+
+      if (amount != null &&
+          amount > 0 &&
+          percentage != null &&
+          percentage > 0) {
+        calculatedBusinessValue = amount * 100 / percentage;
       } else {
         calculatedBusinessValue = null;
       }
@@ -51,6 +61,7 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
     String? descError;
     String? amtError;
     String? docError;
+    String? percError;
 
     if (descriptionController.text.trim().isEmpty) {
       descError = 'Description is required';
@@ -62,20 +73,35 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
     if (selectedDoctorId == null) {
       docError = 'Please select a doctor';
     }
+    // Validate percentage for advance payments
+    if (selectedType == 'Advance Payment') {
+      double? percentage = double.tryParse(percentageController.text);
+      if (percentage == null || percentage <= 0) {
+        percError = 'Please enter a valid percentage greater than 0';
+      }
+    }
 
-    if (descError != null || amtError != null || docError != null) {
+    if (descError != null ||
+        amtError != null ||
+        docError != null ||
+        percError != null) {
       setState(() {
         descriptionError = descError;
         amountError = amtError;
         doctorError = docError;
+        percentageError = percError;
       });
       return;
     }
 
-    print('Dr Ledger Entry: Type=${selectedType}, Amount=${amount}');
     print(
-      'Dr Entry - Type: $selectedType, Amount: $amount, Doctor ID: $selectedDoctorId',
+      'Dr Ledger Entry: Type=${selectedType}, Amount=${amount}, Percentage=${percentageController.text}',
     );
+    print(
+      'Dr Entry - Type: $selectedType, Amount: $amount, Percentage: ${percentageController.text}, Doctor ID: $selectedDoctorId',
+    );
+
+    double? percentage = double.tryParse(percentageController.text);
     final entry = DrLedgerEntry(
       id: DateTime.now().millisecondsSinceEpoch,
       description: descriptionController.text.trim(),
@@ -83,6 +109,7 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
       credit: selectedType == 'Sales' ? amount! : 0,
       date: selectedDate,
       doctorId: selectedDoctorId,
+      percentage: selectedType == 'Advance Payment' ? percentage : null,
     );
 
     controller
@@ -93,7 +120,8 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
           _showSuccessDialog(context, 'Dr Entry has been added successfully.');
         })
         .catchError((e) {
-          // Handle error
+          print('Error adding Dr Ledger Entry: $e');
+          _showErrorDialog(context, 'Failed to add entry: $e');
         });
   }
 
@@ -171,12 +199,24 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
             SizedBox(height: 16),
             _buildTypeDropdown(),
             SizedBox(height: 16),
+            if (selectedType == 'Advance Payment') ...[
+              _buildFormField(
+                'Percentage (%)',
+                Icons.percent,
+                percentageController,
+                '30',
+                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                onChanged: (value) => _calculateBusinessValue(),
+                errorText: percentageError,
+              ),
+              SizedBox(height: 16),
+            ],
             _buildFormField(
               'Amount',
               Icons.attach_money,
               amountController,
               '0.00',
-              keyboardType: TextInputType.number,
+              keyboardType: TextInputType.numberWithOptions(decimal: true),
               errorText: amountError,
               onChanged: (value) => _calculateBusinessValue(),
             ),
@@ -280,6 +320,8 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
           onChanged: (value) {
             setState(() {
               selectedType = value!;
+              percentageError =
+                  null; // Clear percentage error when type changes
               _calculateBusinessValue();
             });
           },
@@ -508,6 +550,42 @@ class _AddDrEntryDialogState extends State<AddDrEntryDialog> {
               'OK',
               style: AppStyles.bodyStyle.copyWith(
                 color: Colors.green,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showErrorDialog(BuildContext context, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: AppColors.background,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+        title: Row(
+          children: [
+            Icon(Icons.error, color: Colors.red, size: 28),
+            SizedBox(width: 12),
+            Text(
+              'Error!',
+              style: AppStyles.headingStyle.copyWith(
+                color: Colors.red.shade800,
+              ),
+            ),
+          ],
+        ),
+        content: Text(message, style: AppStyles.bodyStyle),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'OK',
+              style: AppStyles.bodyStyle.copyWith(
+                color: Colors.red,
                 fontWeight: FontWeight.w600,
               ),
             ),

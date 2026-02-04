@@ -53,9 +53,11 @@ class DrLedgerView extends StatelessWidget {
     double totalSales = 0;
 
     for (var entry in entries) {
-      // For advance payment, add calculated value; for sales, subtract sales amount
+      // For advance payment, add calculated value using stored percentage; for sales, subtract sales amount
       if (entry.debit > 0) {
-        runningBalance += entry.debit * 100 / 30;
+        double percentage =
+            entry.percentage ?? 30.0; // Default to 30 if not set
+        runningBalance += entry.debit * 100 / percentage;
       } else if (entry.credit > 0) {
         runningBalance -= entry.credit;
       }
@@ -291,10 +293,15 @@ class DrLedgerView extends StatelessWidget {
               double openingBalance = 0.0;
               if (controller.isFiltered.value &&
                   controller.fromDate.value != null) {
-                // Calculate balance up to fromDate
+                // Calculate balance up to fromDate using stored percentages
                 for (var entry in controller.drLedgerEntries) {
                   if (entry.date.isBefore(controller.fromDate.value!)) {
-                    openingBalance += entry.debit - entry.credit;
+                    if (entry.debit > 0) {
+                      double percentage = entry.percentage ?? 30.0;
+                      openingBalance += entry.debit * 100 / percentage;
+                    } else if (entry.credit > 0) {
+                      openingBalance -= entry.credit;
+                    }
                   } else {
                     break; // since sorted
                   }

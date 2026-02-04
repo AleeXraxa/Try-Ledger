@@ -104,6 +104,20 @@ class DatabaseHelper {
         isActive INTEGER DEFAULT 1
       )
     ''');
+
+    // Create dr_ledger_entries table
+    await db.execute('''
+      CREATE TABLE dr_ledger_entries (
+        id INTEGER PRIMARY KEY,
+        description TEXT NOT NULL,
+        debit REAL NOT NULL,
+        credit REAL NOT NULL,
+        date TEXT NOT NULL,
+        doctorId INTEGER,
+        rate REAL,
+        percentage REAL
+      )
+    ''');
   }
 
   Future<void> _onUpgrade(Database db, int oldVersion, int newVersion) async {
@@ -194,9 +208,21 @@ class DatabaseHelper {
           debit REAL NOT NULL,
           credit REAL NOT NULL,
           date TEXT NOT NULL,
-          doctorId INTEGER
+          doctorId INTEGER,
+          rate REAL,
+          percentage REAL
         )
       ''');
+    }
+    if (oldVersion < 12) {
+      // Add percentage column to dr_ledger_entries table (for databases created before version 12)
+      try {
+        await db.execute(
+          'ALTER TABLE dr_ledger_entries ADD COLUMN percentage REAL',
+        );
+      } catch (e) {
+        // Column might already exist
+      }
     }
     // isActive column already exists in company table
   }
@@ -264,19 +290,32 @@ class DatabaseHelper {
           credit REAL NOT NULL,
           date TEXT NOT NULL,
           doctorId INTEGER,
-          rate REAL
+          rate REAL,
+          percentage REAL
         )
       ''');
     } catch (e) {
-      // Table might already exist, check if rate column exists
+      // Table might already exist, check if columns exist
       List<Map<String, dynamic>> columns = await db.rawQuery(
         "PRAGMA table_info(dr_ledger_entries)",
       );
       bool hasRate = columns.any((col) => col['name'] == 'rate');
+      bool hasPercentage = columns.any((col) => col['name'] == 'percentage');
+
       if (!hasRate) {
         try {
           await db.execute(
             'ALTER TABLE dr_ledger_entries ADD COLUMN rate REAL',
+          );
+        } catch (e) {
+          // Column might already exist
+        }
+      }
+
+      if (!hasPercentage) {
+        try {
+          await db.execute(
+            'ALTER TABLE dr_ledger_entries ADD COLUMN percentage REAL',
           );
         } catch (e) {
           // Column might already exist

@@ -6,6 +6,7 @@ class DrLedgerEntry {
   final DateTime date;
   final int? doctorId;
   final double? rate;
+  final double? percentage;
 
   DrLedgerEntry({
     required this.id,
@@ -15,6 +16,7 @@ class DrLedgerEntry {
     required this.date,
     this.doctorId,
     this.rate,
+    this.percentage,
   });
 
   factory DrLedgerEntry.fromJson(Map<String, dynamic> json) {
@@ -26,6 +28,9 @@ class DrLedgerEntry {
       date: DateTime.parse(json['date']),
       doctorId: json['doctorId'] as int?,
       rate: json['rate'] != null ? (json['rate'] as num).toDouble() : null,
+      percentage: json['percentage'] != null
+          ? (json['percentage'] as num).toDouble()
+          : null,
     );
   }
 
@@ -38,6 +43,7 @@ class DrLedgerEntry {
       'date': date.toIso8601String(),
       'doctorId': doctorId,
       'rate': rate,
+      'percentage': percentage,
     };
   }
 }
