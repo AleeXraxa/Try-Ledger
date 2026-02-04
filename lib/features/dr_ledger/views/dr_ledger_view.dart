@@ -1523,7 +1523,12 @@ class DrLedgerView extends StatelessWidget {
     double openingBalance = 0.0;
     for (var entry in controller.drLedgerEntries) {
       if (entry.date.isBefore(fromDate)) {
-        openingBalance += entry.debit - entry.credit;
+        if (entry.debit > 0) {
+          double percentage = entry.percentage ?? 30.0;
+          openingBalance += entry.debit * 100 / percentage;
+        } else if (entry.credit > 0) {
+          openingBalance -= entry.credit;
+        }
       } else {
         break;
       }
@@ -1692,7 +1697,8 @@ class DrLedgerView extends StatelessWidget {
                   // Entries
                   ...reportEntries.map((entry) {
                     if (entry.debit > 0) {
-                      openingBalance += entry.debit * 100 / 30;
+                      double percentage = entry.percentage ?? 30.0;
+                      openingBalance += entry.debit * 100 / percentage;
                     } else if (entry.credit > 0) {
                       openingBalance -= entry.credit;
                     }
