@@ -681,165 +681,172 @@ class _PurchaseDialogState extends State<PurchaseDialog> {
             border: Border.all(color: AppColors.primary.withOpacity(0.1)),
           ),
           child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: DataTable(
-                columnSpacing: 20,
-                horizontalMargin: 16,
-                headingRowHeight: 56,
-                dataRowHeight: 52,
-                headingRowColor: MaterialStateProperty.all(
-                  AppColors.primary.withOpacity(0.05),
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: DataTable(
+                  columnSpacing: 20,
+                  horizontalMargin: 16,
+                  headingRowHeight: 56,
+                  dataRowHeight: 52,
+                  headingRowColor: MaterialStateProperty.all(
+                    AppColors.primary.withOpacity(0.05),
+                  ),
+                  columns: [
+                    DataColumn(
+                      label: Text(
+                        'S.No',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Name',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Batch',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Expiry',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Qty',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Price',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Value',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Actions',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                  rows: selectedItems.asMap().entries.map((entry) {
+                    int index = entry.key;
+                    var item = entry.value;
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          Text(
+                            (index + 1).toString(),
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Text(item['name'], style: AppStyles.bodyStyle),
+                        ),
+                        DataCell(
+                          Text(item['batch'], style: AppStyles.bodyStyle),
+                        ),
+                        DataCell(
+                          Text(
+                            item['expiry'] != null
+                                ? formatDate(DateTime.parse(item['expiry']))
+                                : '',
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            item['qty'].toString(),
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            formatCurrency(item['price']),
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            formatCurrency(item['value']),
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.edit_outlined,
+                                    color: AppColors.primary,
+                                  ),
+                                  onPressed: () => _editItem(index),
+                                  tooltip: 'Edit',
+                                  iconSize: 20,
+                                  padding: EdgeInsets.all(8),
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outlined,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () => _deleteItem(index),
+                                  tooltip: 'Delete',
+                                  iconSize: 20,
+                                  padding: EdgeInsets.all(8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ),
-                columns: [
-                  DataColumn(
-                    label: Text(
-                      'S.No',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Name',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Batch',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Expiry',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Qty',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Price',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Value',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Actions',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-                rows: selectedItems.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  var item = entry.value;
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                        Text(
-                          (index + 1).toString(),
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(Text(item['name'], style: AppStyles.bodyStyle)),
-                      DataCell(Text(item['batch'], style: AppStyles.bodyStyle)),
-                      DataCell(
-                        Text(
-                          item['expiry'] != null
-                              ? formatDate(DateTime.parse(item['expiry']))
-                              : '',
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(
-                        Text(
-                          item['qty'].toString(),
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(
-                        Text(
-                          formatCurrency(item['price']),
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(
-                        Text(
-                          formatCurrency(item['value']),
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.edit_outlined,
-                                  color: AppColors.primary,
-                                ),
-                                onPressed: () => _editItem(index),
-                                tooltip: 'Edit',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.delete_outlined,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () => _deleteItem(index),
-                                tooltip: 'Delete',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
               ),
             ),
           ),

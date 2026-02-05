@@ -379,184 +379,189 @@ class InventoryView extends StatelessWidget {
             border: Border.all(color: AppColors.primary.withOpacity(0.1)),
           ),
           child: SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: ConstrainedBox(
-              constraints: BoxConstraints(minWidth: constraints.maxWidth),
-              child: DataTable(
-                columnSpacing: 20,
-                horizontalMargin: 16,
-                headingRowHeight: 56,
-                dataRowHeight: 52,
-                headingRowColor: MaterialStateProperty.all(
-                  AppColors.primary.withOpacity(0.05),
+            scrollDirection: Axis.vertical,
+            child: SingleChildScrollView(
+              scrollDirection: Axis.horizontal,
+              child: ConstrainedBox(
+                constraints: BoxConstraints(minWidth: constraints.maxWidth),
+                child: DataTable(
+                  columnSpacing: 20,
+                  horizontalMargin: 16,
+                  headingRowHeight: 56,
+                  dataRowHeight: 52,
+                  headingRowColor: MaterialStateProperty.all(
+                    AppColors.primary.withOpacity(0.05),
+                  ),
+                  columns: [
+                    DataColumn(
+                      label: Text(
+                        'S.No',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Invoice Reference',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Company Name',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Invoice Date',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Amount',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                    DataColumn(
+                      label: Text(
+                        'Actions',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
+                    ),
+                  ],
+                  rows: controller.filteredInvoices.asMap().entries.map((
+                    entry,
+                  ) {
+                    int index = entry.key;
+                    var invoice = entry.value;
+                    final company = companyController.companies
+                        .firstWhereOrNull((c) => c.id == invoice.companyId);
+                    final companyName = company?.name ?? 'N/A';
+                    return DataRow(
+                      cells: [
+                        DataCell(
+                          Text(
+                            (index + 1).toString(),
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Text(invoice.reference, style: AppStyles.bodyStyle),
+                        ),
+                        DataCell(Text(companyName, style: AppStyles.bodyStyle)),
+                        DataCell(
+                          Text(
+                            formatDate(invoice.date),
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Text(
+                            formatCurrency(invoice.total),
+                            style: AppStyles.bodyStyle,
+                          ),
+                        ),
+                        DataCell(
+                          Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Container(
+                                margin: EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.visibility_outlined,
+                                    color: AppColors.primary,
+                                  ),
+                                  onPressed: () => showDialog(
+                                    context: context,
+                                    builder: (context) =>
+                                        InvoiceDetailsDialog(invoice: invoice),
+                                  ),
+                                  tooltip: 'View',
+                                  iconSize: 20,
+                                  padding: EdgeInsets.all(8),
+                                ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.edit_outlined,
+                                    color: Colors.orange,
+                                  ),
+                                  onPressed: () => showDialog(
+                                    context: context,
+                                    builder: (context) =>
+                                        EditInvoiceDialog(invoice: invoice),
+                                  ),
+                                  tooltip: 'Edit',
+                                  iconSize: 20,
+                                  padding: EdgeInsets.all(8),
+                                ),
+                              ),
+                              Container(
+                                margin: EdgeInsets.only(right: 8),
+                                decoration: BoxDecoration(
+                                  color: Colors.green.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.download_outlined,
+                                    color: Colors.green,
+                                  ),
+                                  onPressed: () =>
+                                      controller.downloadInvoice(invoice),
+                                  tooltip: 'Download',
+                                  iconSize: 20,
+                                  padding: EdgeInsets.all(8),
+                                ),
+                              ),
+                              Container(
+                                decoration: BoxDecoration(
+                                  color: Colors.red.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: IconButton(
+                                  icon: Icon(
+                                    Icons.delete_outlined,
+                                    color: Colors.red,
+                                  ),
+                                  onPressed: () =>
+                                      _deleteInvoice(context, index),
+                                  tooltip: 'Delete',
+                                  iconSize: 20,
+                                  padding: EdgeInsets.all(8),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
                 ),
-                columns: [
-                  DataColumn(
-                    label: Text(
-                      'S.No',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Invoice Reference',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Company Name',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Invoice Date',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Amount',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                  DataColumn(
-                    label: Text(
-                      'Actions',
-                      style: AppStyles.bodyStyle.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ),
-                ],
-                rows: controller.filteredInvoices.asMap().entries.map((entry) {
-                  int index = entry.key;
-                  var invoice = entry.value;
-                  final company = companyController.companies.firstWhereOrNull(
-                    (c) => c.id == invoice.companyId,
-                  );
-                  final companyName = company?.name ?? 'N/A';
-                  return DataRow(
-                    cells: [
-                      DataCell(
-                        Text(
-                          (index + 1).toString(),
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(
-                        Text(invoice.reference, style: AppStyles.bodyStyle),
-                      ),
-                      DataCell(Text(companyName, style: AppStyles.bodyStyle)),
-                      DataCell(
-                        Text(
-                          formatDate(invoice.date),
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(
-                        Text(
-                          formatCurrency(invoice.total),
-                          style: AppStyles.bodyStyle,
-                        ),
-                      ),
-                      DataCell(
-                        Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            Container(
-                              margin: EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.visibility_outlined,
-                                  color: AppColors.primary,
-                                ),
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (context) =>
-                                      InvoiceDetailsDialog(invoice: invoice),
-                                ),
-                                tooltip: 'View',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.orange.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.edit_outlined,
-                                  color: Colors.orange,
-                                ),
-                                onPressed: () => showDialog(
-                                  context: context,
-                                  builder: (context) =>
-                                      EditInvoiceDialog(invoice: invoice),
-                                ),
-                                tooltip: 'Edit',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
-                            ),
-                            Container(
-                              margin: EdgeInsets.only(right: 8),
-                              decoration: BoxDecoration(
-                                color: Colors.green.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.download_outlined,
-                                  color: Colors.green,
-                                ),
-                                onPressed: () =>
-                                    controller.downloadInvoice(invoice),
-                                tooltip: 'Download',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
-                            ),
-                            Container(
-                              decoration: BoxDecoration(
-                                color: Colors.red.withOpacity(0.1),
-                                borderRadius: BorderRadius.circular(8),
-                              ),
-                              child: IconButton(
-                                icon: Icon(
-                                  Icons.delete_outlined,
-                                  color: Colors.red,
-                                ),
-                                onPressed: () => _deleteInvoice(context, index),
-                                tooltip: 'Delete',
-                                iconSize: 20,
-                                padding: EdgeInsets.all(8),
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  );
-                }).toList(),
               ),
             ),
           ),

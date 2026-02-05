@@ -1364,6 +1364,7 @@ class DrLedgerView extends StatelessWidget {
     DateTime? fromDate;
     DateTime? toDate;
     int? selectedDoctorId;
+    bool showPercentage = false;
 
     showDialog(
       context: context,
@@ -1473,6 +1474,26 @@ class DrLedgerView extends StatelessWidget {
                     selectedDoctorId,
                     (doctorId) => setState(() => selectedDoctorId = doctorId),
                   ),
+                  SizedBox(height: 16),
+                  Row(
+                    children: [
+                      Text(
+                        'Show Percentage Column',
+                        style: AppStyles.bodyStyle.copyWith(
+                          fontWeight: FontWeight.w600,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Switch(
+                        value: showPercentage,
+                        onChanged: (value) {
+                          setState(() => showPercentage = value);
+                        },
+                        activeColor: AppColors.primary,
+                      ),
+                    ],
+                  ),
                   SizedBox(height: 24),
                   _buildPremiumButton(
                     'Generate PDF Report',
@@ -1489,6 +1510,7 @@ class DrLedgerView extends StatelessWidget {
                         fromDate!,
                         toDate!,
                         selectedDoctorId,
+                        showPercentage,
                       );
                       Navigator.of(context).pop();
                     },
@@ -1506,6 +1528,7 @@ class DrLedgerView extends StatelessWidget {
     DateTime fromDate,
     DateTime toDate,
     int? doctorId,
+    bool showPercentage,
   ) async {
     // Filter entries for the date range and doctor
     List<DrLedgerEntry> reportEntries = controller.drLedgerEntries.where((
@@ -1593,13 +1616,22 @@ class DrLedgerView extends StatelessWidget {
               pw.SizedBox(height: 16),
               pw.Table(
                 border: pw.TableBorder.all(color: PdfColors.grey300),
-                columnWidths: {
-                  0: pw.FlexColumnWidth(2), // Date
-                  1: pw.FlexColumnWidth(4), // Description
-                  2: pw.FlexColumnWidth(2), // Advance Payment
-                  3: pw.FlexColumnWidth(2), // Sales
-                  4: pw.FlexColumnWidth(2), // Balance
-                },
+                columnWidths: showPercentage
+                    ? {
+                        0: pw.FlexColumnWidth(2), // Date
+                        1: pw.FlexColumnWidth(4), // Description
+                        2: pw.FlexColumnWidth(2), // Advance Payment
+                        3: pw.FlexColumnWidth(2), // Percentage
+                        4: pw.FlexColumnWidth(2), // Sales
+                        5: pw.FlexColumnWidth(2), // Balance
+                      }
+                    : {
+                        0: pw.FlexColumnWidth(2), // Date
+                        1: pw.FlexColumnWidth(4), // Description
+                        2: pw.FlexColumnWidth(2), // Advance Payment
+                        3: pw.FlexColumnWidth(2), // Sales
+                        4: pw.FlexColumnWidth(2), // Balance
+                      },
                 children: [
                   pw.TableRow(
                     decoration: pw.BoxDecoration(color: PdfColors.grey100),
@@ -1634,6 +1666,17 @@ class DrLedgerView extends StatelessWidget {
                           ),
                         ),
                       ),
+                      if (showPercentage)
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text(
+                            'Percentage',
+                            style: pw.TextStyle(
+                              fontWeight: pw.FontWeight.bold,
+                              fontSize: 8,
+                            ),
+                          ),
+                        ),
                       pw.Container(
                         padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
@@ -1681,6 +1724,14 @@ class DrLedgerView extends StatelessWidget {
                           padding: pw.EdgeInsets.all(6),
                           child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
                         ),
+                        if (showPercentage)
+                          pw.Container(
+                            padding: pw.EdgeInsets.all(6),
+                            child: pw.Text(
+                              '',
+                              style: pw.TextStyle(fontSize: 8),
+                            ),
+                          ),
                         pw.Container(
                           padding: pw.EdgeInsets.all(6),
                           child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
@@ -1725,6 +1776,16 @@ class DrLedgerView extends StatelessWidget {
                             style: pw.TextStyle(fontSize: 8),
                           ),
                         ),
+                        if (showPercentage)
+                          pw.Container(
+                            padding: pw.EdgeInsets.all(6),
+                            child: pw.Text(
+                              entry.debit > 0
+                                  ? '${entry.percentage?.toStringAsFixed(1) ?? '30.0'}%'
+                                  : '',
+                              style: pw.TextStyle(fontSize: 8),
+                            ),
+                          ),
                         pw.Container(
                           padding: pw.EdgeInsets.all(6),
                           child: pw.Text(
@@ -1779,6 +1840,11 @@ class DrLedgerView extends StatelessWidget {
                           style: pw.TextStyle(fontSize: 8),
                         ),
                       ),
+                      if (showPercentage)
+                        pw.Container(
+                          padding: pw.EdgeInsets.all(6),
+                          child: pw.Text('', style: pw.TextStyle(fontSize: 8)),
+                        ),
                       pw.Container(
                         padding: pw.EdgeInsets.all(6),
                         child: pw.Text(
